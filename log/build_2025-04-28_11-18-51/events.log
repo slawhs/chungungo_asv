@@ -1,0 +1,91 @@
+[0.000000] (-) TimerEvent: {}
+[0.001764] (-) JobUnselected: {'identifier': 'perception_pkg'}
+[0.002423] (-) JobUnselected: {'identifier': 'rplidar_ros'}
+[0.002961] (pointcloud_to_laserscan) JobQueued: {'identifier': 'pointcloud_to_laserscan', 'dependencies': OrderedDict()}
+[0.003166] (pointcloud_to_laserscan) JobStarted: {'identifier': 'pointcloud_to_laserscan'}
+[0.050063] (pointcloud_to_laserscan) JobProgress: {'identifier': 'pointcloud_to_laserscan', 'progress': 'cmake'}
+[0.053730] (pointcloud_to_laserscan) Command: {'cmd': ['/usr/bin/cmake', '/home/grupo4/capstone_ws/src/pointcloud_to_laserscan', '-DAMENT_CMAKE_SYMLINK_INSTALL=1', '-DCMAKE_INSTALL_PREFIX=/home/grupo4/capstone_ws/install/pointcloud_to_laserscan'], 'cwd': '/home/grupo4/capstone_ws/build/pointcloud_to_laserscan', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('LANGUAGE', 'es_CL:es'), ('USER', 'grupo4'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '//home/grupo4/capstone_ws/install/rplidar_ros/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/grupo4'), ('OLDPWD', '/home/grupo4'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '4251'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('IM_CONFIG_PHASE', '1'), ('COLCON_PREFIX_PATH', '//home/grupo4/test_ws/install://home/grupo4/capstone_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'grupo4'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'grupo4'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/g4-capstone:@/tmp/.ICE-unix/1757,unix/g4-capstone:/tmp/.ICE-unix/1757'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/d497a922_ee85_4b93_9391_052e199301cc'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':1'), ('LANG', 'es_CL.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.100'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('ROS_DOMAIN_ID', '4'), ('AMENT_PREFIX_PATH', '//home/grupo4/test_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/perception_pkg:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/grupo4/capstone_ws/build/pointcloud_to_laserscan'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/grupo4/capstone_ws/build/perception_pkg://home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '//home/grupo4/test_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/perception_pkg:/opt/ros/humble')]), 'shell': False}
+[0.098925] (-) TimerEvent: {}
+[0.115447] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.199094] (-) TimerEvent: {}
+[0.300104] (-) TimerEvent: {}
+[0.402065] (-) TimerEvent: {}
+[0.504853] (-) TimerEvent: {}
+[0.605717] (-) TimerEvent: {}
+[0.706706] (-) TimerEvent: {}
+[0.773006] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Override CMake install command with custom implementation using symlinks instead of copying resources\n'}
+[0.806883] (-) TimerEvent: {}
+[0.807603] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found laser_geometry: 2.4.0 (/opt/ros/humble/share/laser_geometry/cmake)\n'}
+[0.907046] (-) TimerEvent: {}
+[1.002649] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[1.007180] (-) TimerEvent: {}
+[1.013334] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[1.044689] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[1.083606] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[1.107353] (-) TimerEvent: {}
+[1.133429] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[1.207591] (-) TimerEvent: {}
+[1.275748] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[1.281945] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[1.307782] (-) TimerEvent: {}
+[1.408542] (-) TimerEvent: {}
+[1.509331] (-) TimerEvent: {}
+[1.610136] (-) TimerEvent: {}
+[1.710973] (-) TimerEvent: {}
+[1.811811] (-) TimerEvent: {}
+[1.912626] (-) TimerEvent: {}
+[2.013427] (-) TimerEvent: {}
+[2.114265] (-) TimerEvent: {}
+[2.215074] (-) TimerEvent: {}
+[2.225316] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[2.315272] (-) TimerEvent: {}
+[2.416104] (-) TimerEvent: {}
+[2.516891] (-) TimerEvent: {}
+[2.574116] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found message_filters: 4.3.6 (/opt/ros/humble/share/message_filters/cmake)\n'}
+[2.585782] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found rclcpp_components: 16.0.12 (/opt/ros/humble/share/rclcpp_components/cmake)\n'}
+[2.617092] (-) TimerEvent: {}
+[2.664712] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found tf2_ros: 0.25.12 (/opt/ros/humble/share/tf2_ros/cmake)\n'}
+[2.717288] (-) TimerEvent: {}
+[2.818248] (-) TimerEvent: {}
+[2.899218] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found tf2_sensor_msgs: 0.25.12 (/opt/ros/humble/share/tf2_sensor_msgs/cmake)\n'}
+[2.918368] (-) TimerEvent: {}
+[2.931472] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.12 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[3.018535] (-) TimerEvent: {}
+[3.119252] (-) TimerEvent: {}
+[3.220299] (-) TimerEvent: {}
+[3.320755] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'cppcheck' to perform static code analysis on C / C++ code\n"}
+[3.329119] (-) TimerEvent: {}
+[3.329540] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Configured cppcheck include dirs: $<BUILD_INTERFACE:/home/grupo4/capstone_ws/src/pointcloud_to_laserscan/include>\n'}
+[3.330044] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Configured cppcheck exclude dirs and/or files: \n'}
+[3.359006] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'cpplint' to check C / C++ code against the Google style\n"}
+[3.359919] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Configured cpplint exclude dirs and/or files: \n'}
+[3.365587] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'flake8' to check Python code syntax and style conventions\n"}
+[3.376762] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[3.382728] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257\n"}
+[3.419546] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'uncrustify' to check C / C++ code style\n"}
+[3.420263] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Configured uncrustify additional arguments: \n'}
+[3.425321] (pointcloud_to_laserscan) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[3.429301] (-) TimerEvent: {}
+[3.433954] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Configuring done\n'}
+[3.477790] (pointcloud_to_laserscan) StderrLine: {'line': b'\x1b[31mCMake Error at CMakeLists.txt:15 (add_library):\n'}
+[3.478892] (pointcloud_to_laserscan) StderrLine: {'line': b'  Target "laserscan_to_pointcloud" links to target\n'}
+[3.479397] (pointcloud_to_laserscan) StderrLine: {'line': b'  "tf2_sensor_msgs::tf2_sensor_msgs" but the target was not found.  Perhaps a\n'}
+[3.479804] (pointcloud_to_laserscan) StderrLine: {'line': b'  find_package() call is missing for an IMPORTED target, or an ALIAS target\n'}
+[3.480237] (pointcloud_to_laserscan) StderrLine: {'line': b'  is missing?\n'}
+[3.480674] (pointcloud_to_laserscan) StderrLine: {'line': b'\n'}
+[3.481045] (pointcloud_to_laserscan) StderrLine: {'line': b'\x1b[0m\n'}
+[3.481385] (pointcloud_to_laserscan) StderrLine: {'line': b'\x1b[31mCMake Error at CMakeLists.txt:36 (add_library):\n'}
+[3.481777] (pointcloud_to_laserscan) StderrLine: {'line': b'  Target "pointcloud_to_laserscan" links to target\n'}
+[3.482148] (pointcloud_to_laserscan) StderrLine: {'line': b'  "tf2_sensor_msgs::tf2_sensor_msgs" but the target was not found.  Perhaps a\n'}
+[3.482670] (pointcloud_to_laserscan) StderrLine: {'line': b'  find_package() call is missing for an IMPORTED target, or an ALIAS target\n'}
+[3.483083] (pointcloud_to_laserscan) StderrLine: {'line': b'  is missing?\n'}
+[3.483429] (pointcloud_to_laserscan) StderrLine: {'line': b'\n'}
+[3.483769] (pointcloud_to_laserscan) StderrLine: {'line': b'\x1b[0m\n'}
+[3.529532] (-) TimerEvent: {}
+[3.592310] (pointcloud_to_laserscan) StdoutLine: {'line': b'-- Generating done\n'}
+[3.603246] (pointcloud_to_laserscan) StderrLine: {'line': b'\x1b[0mCMake Generate step failed.  Build files cannot be regenerated correctly.\x1b[0m\n'}
+[3.629986] (-) TimerEvent: {}
+[3.640958] (pointcloud_to_laserscan) CommandEnded: {'returncode': 1}
+[3.730306] (-) TimerEvent: {}
+[3.735780] (pointcloud_to_laserscan) JobEnded: {'identifier': 'pointcloud_to_laserscan', 'rc': 1}
+[3.748523] (-) EventReactorShutdown: {}

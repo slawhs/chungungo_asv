@@ -1,0 +1,66 @@
+[1.405s] Invoking command in '/home/grupo4/capstone_ws/build/pointcloud_to_laserscan': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}://home/grupo4/capstone_ws/install/perception_pkg:/opt/ros/humble /usr/bin/cmake /home/grupo4/capstone_ws/src/pointcloud_to_laserscan -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/grupo4/capstone_ws/install/pointcloud_to_laserscan
+[2.288s] -- The C compiler identification is GNU 11.4.0
+[3.011s] -- The CXX compiler identification is GNU 11.4.0
+[3.069s] -- Detecting C compiler ABI info
+[3.540s] -- Detecting C compiler ABI info - done
+[3.577s] -- Check for working C compiler: /usr/bin/cc - skipped
+[3.586s] -- Detecting C compile features
+[3.593s] -- Detecting C compile features - done
+[3.629s] -- Detecting CXX compiler ABI info
+[4.262s] -- Detecting CXX compiler ABI info - done
+[4.289s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[4.291s] -- Detecting CXX compile features
+[4.293s] -- Detecting CXX compile features - done
+[4.340s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[5.240s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[5.610s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[5.987s] -- Found laser_geometry: 2.4.0 (/opt/ros/humble/share/laser_geometry/cmake)
+[6.680s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[6.737s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[6.820s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[6.926s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[7.067s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[7.469s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[7.503s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[8.171s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[8.433s] -- Found FastRTPS: /opt/ros/humble/include  
+[8.854s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[9.040s] -- Looking for pthread.h
+[9.465s] -- Looking for pthread.h - found
+[9.467s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[9.858s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[9.863s] -- Found Threads: TRUE  
+[10.607s] -- Found message_filters: 4.3.6 (/opt/ros/humble/share/message_filters/cmake)
+[10.644s] -- Found rclcpp_components: 16.0.12 (/opt/ros/humble/share/rclcpp_components/cmake)
+[10.818s] -- Found tf2_ros: 0.25.12 (/opt/ros/humble/share/tf2_ros/cmake)
+[11.253s] -- Found tf2_sensor_msgs: 0.25.12 (/opt/ros/humble/share/tf2_sensor_msgs/cmake)
+[11.309s] -- Found ament_lint_auto: 0.12.12 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[11.865s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[11.866s] -- Configured cppcheck include dirs: $<BUILD_INTERFACE:/home/grupo4/capstone_ws/src/pointcloud_to_laserscan/include>
+[11.866s] -- Configured cppcheck exclude dirs and/or files: 
+[11.905s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[11.905s] -- Configured cpplint exclude dirs and/or files: 
+[11.913s] -- Added test 'flake8' to check Python code syntax and style conventions
+[11.924s] -- Added test 'lint_cmake' to check CMake code style
+[11.932s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[11.971s] -- Added test 'uncrustify' to check C / C++ code style
+[11.971s] -- Configured uncrustify additional arguments: 
+[11.978s] -- Added test 'xmllint' to check XML markup files
+[11.999s] -- Configuring done
+[12.044s] [31mCMake Error at CMakeLists.txt:15 (add_library):
+[12.046s]   Target "laserscan_to_pointcloud" links to target
+[12.046s]   "tf2_sensor_msgs::tf2_sensor_msgs" but the target was not found.  Perhaps a
+[12.047s]   find_package() call is missing for an IMPORTED target, or an ALIAS target
+[12.048s]   is missing?
+[12.048s] 
+[12.049s] [0m
+[12.049s] [31mCMake Error at CMakeLists.txt:36 (add_library):
+[12.050s]   Target "pointcloud_to_laserscan" links to target
+[12.050s]   "tf2_sensor_msgs::tf2_sensor_msgs" but the target was not found.  Perhaps a
+[12.051s]   find_package() call is missing for an IMPORTED target, or an ALIAS target
+[12.052s]   is missing?
+[12.052s] 
+[12.053s] [0m
+[12.163s] -- Generating done
+[12.176s] [0mCMake Generate step failed.  Build files cannot be regenerated correctly.[0m
+[12.248s] Invoked command in '/home/grupo4/capstone_ws/build/pointcloud_to_laserscan' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}://home/grupo4/capstone_ws/install/perception_pkg:/opt/ros/humble /usr/bin/cmake /home/grupo4/capstone_ws/src/pointcloud_to_laserscan -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/grupo4/capstone_ws/install/pointcloud_to_laserscan

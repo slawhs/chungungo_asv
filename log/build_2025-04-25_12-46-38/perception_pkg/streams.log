@@ -1,0 +1,17 @@
+[4.552s] Invoking command in '/home/grupo4/capstone_ws/build/perception_pkg': PYTHONPATH=/home/grupo4/capstone_ws/build/perception_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/grupo4/capstone_ws/build/perception_pkg/build --no-deps symlink_data
+[5.919s] running develop
+[6.810s] running egg_info
+[6.811s] writing perception_pkg.egg-info/PKG-INFO
+[6.812s] writing dependency_links to perception_pkg.egg-info/dependency_links.txt
+[6.816s] writing entry points to perception_pkg.egg-info/entry_points.txt
+[6.817s] writing requirements to perception_pkg.egg-info/requires.txt
+[6.820s] writing top-level names to perception_pkg.egg-info/top_level.txt
+[6.829s] reading manifest file 'perception_pkg.egg-info/SOURCES.txt'
+[6.832s] writing manifest file 'perception_pkg.egg-info/SOURCES.txt'
+[6.839s] running build_ext
+[6.840s] Creating /home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages/perception-pkg.egg-link (link to .)
+[6.844s] Installing lidar_processing script to /home/grupo4/capstone_ws/install/perception_pkg/lib/perception_pkg
+[6.846s] 
+[6.846s] Installed /home/grupo4/capstone_ws/build/perception_pkg
+[6.847s] running symlink_data
+[7.001s] Invoked command in '/home/grupo4/capstone_ws/build/perception_pkg' returned '0': PYTHONPATH=/home/grupo4/capstone_ws/build/perception_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/grupo4/capstone_ws/build/perception_pkg/build --no-deps symlink_data

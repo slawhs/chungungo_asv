@@ -1,0 +1,23 @@
+[3.235s] Invoking command in '/home/grupo4/capstone_ws/build/perception_pkg': PYTHONPATH=/home/grupo4/capstone_ws/build/perception_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/grupo4/capstone_ws/build/perception_pkg/build --no-deps symlink_data
+[4.404s] running develop
+[5.195s] running egg_info
+[5.195s] creating perception_pkg.egg-info
+[5.196s] writing perception_pkg.egg-info/PKG-INFO
+[5.197s] writing dependency_links to perception_pkg.egg-info/dependency_links.txt
+[5.197s] writing entry points to perception_pkg.egg-info/entry_points.txt
+[5.198s] writing requirements to perception_pkg.egg-info/requires.txt
+[5.198s] writing top-level names to perception_pkg.egg-info/top_level.txt
+[5.199s] writing manifest file 'perception_pkg.egg-info/SOURCES.txt'
+[5.206s] reading manifest file 'perception_pkg.egg-info/SOURCES.txt'
+[5.209s] writing manifest file 'perception_pkg.egg-info/SOURCES.txt'
+[5.214s] running build_ext
+[5.215s] Creating /home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages/perception-pkg.egg-link (link to .)
+[5.219s] 
+[5.219s] Installed /home/grupo4/capstone_ws/build/perception_pkg
+[5.220s] running symlink_data
+[5.220s] creating /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index
+[5.221s] creating /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index/resource_index
+[5.221s] creating /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index/resource_index/packages
+[5.222s] symbolically linking /home/grupo4/capstone_ws/build/perception_pkg/resource/perception_pkg -> /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index/resource_index/packages
+[5.223s] symbolically linking /home/grupo4/capstone_ws/build/perception_pkg/package.xml -> /home/grupo4/capstone_ws/install/perception_pkg/share/perception_pkg
+[5.369s] Invoked command in '/home/grupo4/capstone_ws/build/perception_pkg' returned '0': PYTHONPATH=/home/grupo4/capstone_ws/build/perception_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/grupo4/capstone_ws/build/perception_pkg/build --no-deps symlink_data

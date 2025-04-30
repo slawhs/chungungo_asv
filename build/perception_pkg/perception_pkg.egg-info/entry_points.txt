@@ -1,0 +1,3 @@
+[console_scripts]
+lidar_processing = perception_pkg.lidar_processing:main
+

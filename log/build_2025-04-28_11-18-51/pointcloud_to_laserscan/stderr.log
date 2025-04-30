@@ -1,0 +1,15 @@
+[31mCMake Error at CMakeLists.txt:15 (add_library):
+  Target "laserscan_to_pointcloud" links to target
+  "tf2_sensor_msgs::tf2_sensor_msgs" but the target was not found.  Perhaps a
+  find_package() call is missing for an IMPORTED target, or an ALIAS target
+  is missing?
+
+[0m
+[31mCMake Error at CMakeLists.txt:36 (add_library):
+  Target "pointcloud_to_laserscan" links to target
+  "tf2_sensor_msgs::tf2_sensor_msgs" but the target was not found.  Perhaps a
+  find_package() call is missing for an IMPORTED target, or an ALIAS target
+  is missing?
+
+[0m
+[0mCMake Generate step failed.  Build files cannot be regenerated correctly.[0m

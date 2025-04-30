@@ -1,0 +1,21 @@
+running develop
+running egg_info
+creating perception_pkg.egg-info
+writing perception_pkg.egg-info/PKG-INFO
+writing dependency_links to perception_pkg.egg-info/dependency_links.txt
+writing entry points to perception_pkg.egg-info/entry_points.txt
+writing requirements to perception_pkg.egg-info/requires.txt
+writing top-level names to perception_pkg.egg-info/top_level.txt
+writing manifest file 'perception_pkg.egg-info/SOURCES.txt'
+reading manifest file 'perception_pkg.egg-info/SOURCES.txt'
+writing manifest file 'perception_pkg.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages/perception-pkg.egg-link (link to .)
+
+Installed /home/grupo4/capstone_ws/build/perception_pkg
+running symlink_data
+creating /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index
+creating /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index/resource_index
+creating /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index/resource_index/packages
+symbolically linking /home/grupo4/capstone_ws/build/perception_pkg/resource/perception_pkg -> /home/grupo4/capstone_ws/install/perception_pkg/share/ament_index/resource_index/packages
+symbolically linking /home/grupo4/capstone_ws/build/perception_pkg/package.xml -> /home/grupo4/capstone_ws/install/perception_pkg/share/perception_pkg

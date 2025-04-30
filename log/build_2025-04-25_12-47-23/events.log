@@ -1,0 +1,90 @@
+[0.000000] (-) TimerEvent: {}
+[0.002245] (-) JobUnselected: {'identifier': 'rplidar_ros'}
+[0.002594] (perception_pkg) JobQueued: {'identifier': 'perception_pkg', 'dependencies': OrderedDict()}
+[0.004561] (perception_pkg) JobStarted: {'identifier': 'perception_pkg'}
+[0.094261] (-) TimerEvent: {}
+[0.196795] (-) TimerEvent: {}
+[0.298094] (-) TimerEvent: {}
+[0.399032] (-) TimerEvent: {}
+[0.500157] (-) TimerEvent: {}
+[0.600909] (-) TimerEvent: {}
+[0.701605] (-) TimerEvent: {}
+[0.802333] (-) TimerEvent: {}
+[0.903040] (-) TimerEvent: {}
+[1.003707] (-) TimerEvent: {}
+[1.104615] (-) TimerEvent: {}
+[1.205637] (-) TimerEvent: {}
+[1.307697] (-) TimerEvent: {}
+[1.409222] (-) TimerEvent: {}
+[1.510565] (-) TimerEvent: {}
+[1.611431] (-) TimerEvent: {}
+[1.712315] (-) TimerEvent: {}
+[1.813919] (-) TimerEvent: {}
+[1.914903] (-) TimerEvent: {}
+[2.015912] (-) TimerEvent: {}
+[2.117539] (-) TimerEvent: {}
+[2.218428] (-) TimerEvent: {}
+[2.319340] (-) TimerEvent: {}
+[2.420314] (-) TimerEvent: {}
+[2.521088] (-) TimerEvent: {}
+[2.621859] (-) TimerEvent: {}
+[2.722659] (-) TimerEvent: {}
+[2.823398] (-) TimerEvent: {}
+[2.924209] (-) TimerEvent: {}
+[3.030195] (-) TimerEvent: {}
+[3.131056] (-) TimerEvent: {}
+[3.231915] (-) TimerEvent: {}
+[3.332756] (-) TimerEvent: {}
+[3.433862] (-) TimerEvent: {}
+[3.534928] (-) TimerEvent: {}
+[3.635969] (-) TimerEvent: {}
+[3.736893] (-) TimerEvent: {}
+[3.837609] (-) TimerEvent: {}
+[3.938418] (-) TimerEvent: {}
+[4.039136] (-) TimerEvent: {}
+[4.139993] (-) TimerEvent: {}
+[4.198982] (perception_pkg) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/home/grupo4/capstone_ws/build/perception_pkg/build', '--no-deps', 'symlink_data'], 'cwd': '/home/grupo4/capstone_ws/build/perception_pkg', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'LANGUAGE': 'es_CL:es', 'USER': 'grupo4', 'XDG_SESSION_TYPE': 'wayland', 'SHLVL': '1', 'LD_LIBRARY_PATH': '//home/grupo4/capstone_ws/install/rplidar_ros/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/grupo4', 'OLDPWD': '/home/grupo4', 'DESKTOP_SESSION': 'ubuntu', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'SYSTEMD_EXEC_PID': '1694', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'IM_CONFIG_PHASE': '1', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '//home/grupo4/test_ws/install://home/grupo4/capstone_ws/install', 'ROS_DISTRO': 'humble', 'LOGNAME': 'grupo4', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'USERNAME': 'grupo4', 'TERM': 'xterm-256color', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin', 'SESSION_MANAGER': 'local/g4-capstone:@/tmp/.ICE-unix/1662,unix/g4-capstone:/tmp/.ICE-unix/1662', 'XDG_MENU_PREFIX': 'gnome-', 'GNOME_TERMINAL_SCREEN': '/org/gnome/Terminal/screen/ae300e59_045c_45fd_ba42_807dc0fc47d3', 'GNOME_SETUP_DISPLAY': ':1', 'XDG_RUNTIME_DIR': '/run/user/1000', 'DISPLAY': ':0', 'LANG': 'es_CL.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'XMODIFIERS': '@im=ibus', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/.mutter-Xwaylandauth.IG1L52', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'GNOME_TERMINAL_SERVICE': ':1.128', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'ROS_DOMAIN_ID': '4', 'AMENT_PREFIX_PATH': '//home/grupo4/test_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/perception_pkg:/opt/ros/humble', 'SHELL': '/bin/bash', 'QT_ACCESSIBILITY': '1', 'GDMSESSION': 'ubuntu', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'QT_IM_MODULE': 'ibus', 'PWD': '/home/grupo4/capstone_ws/build/perception_pkg', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/grupo4/capstone_ws/build/perception_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:/home/grupo4/capstone_ws/build/perception_pkg://home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'VTE_VERSION': '6800', 'CMAKE_PREFIX_PATH': '//home/grupo4/test_ws/install/rplidar_ros://home/grupo4/capstone_ws/install/rplidar_ros'}, 'shell': False}
+[4.240168] (-) TimerEvent: {}
+[4.340931] (-) TimerEvent: {}
+[4.441895] (-) TimerEvent: {}
+[4.542630] (-) TimerEvent: {}
+[4.643343] (-) TimerEvent: {}
+[4.743991] (-) TimerEvent: {}
+[4.844684] (-) TimerEvent: {}
+[4.945566] (-) TimerEvent: {}
+[5.046270] (-) TimerEvent: {}
+[5.147040] (-) TimerEvent: {}
+[5.247807] (-) TimerEvent: {}
+[5.348505] (-) TimerEvent: {}
+[5.449412] (-) TimerEvent: {}
+[5.550163] (-) TimerEvent: {}
+[5.565375] (perception_pkg) StdoutLine: {'line': b'running develop\n'}
+[5.650317] (-) TimerEvent: {}
+[5.751005] (-) TimerEvent: {}
+[5.851724] (-) TimerEvent: {}
+[5.952422] (-) TimerEvent: {}
+[6.053125] (-) TimerEvent: {}
+[6.154104] (-) TimerEvent: {}
+[6.254810] (-) TimerEvent: {}
+[6.355501] (-) TimerEvent: {}
+[6.456219] (-) TimerEvent: {}
+[6.477730] (perception_pkg) StdoutLine: {'line': b'running egg_info\n'}
+[6.478520] (perception_pkg) StdoutLine: {'line': b'writing perception_pkg.egg-info/PKG-INFO\n'}
+[6.479979] (perception_pkg) StdoutLine: {'line': b'writing dependency_links to perception_pkg.egg-info/dependency_links.txt\n'}
+[6.481151] (perception_pkg) StdoutLine: {'line': b'writing entry points to perception_pkg.egg-info/entry_points.txt\n'}
+[6.482059] (perception_pkg) StdoutLine: {'line': b'writing requirements to perception_pkg.egg-info/requires.txt\n'}
+[6.484089] (perception_pkg) StdoutLine: {'line': b'writing top-level names to perception_pkg.egg-info/top_level.txt\n'}
+[6.494752] (perception_pkg) StdoutLine: {'line': b"reading manifest file 'perception_pkg.egg-info/SOURCES.txt'\n"}
+[6.498581] (perception_pkg) StdoutLine: {'line': b"writing manifest file 'perception_pkg.egg-info/SOURCES.txt'\n"}
+[6.505588] (perception_pkg) StdoutLine: {'line': b'running build_ext\n'}
+[6.506495] (perception_pkg) StdoutLine: {'line': b'Creating /home/grupo4/capstone_ws/install/perception_pkg/lib/python3.10/site-packages/perception-pkg.egg-link (link to .)\n'}
+[6.510911] (perception_pkg) StdoutLine: {'line': b'Installing lidar_processing script to /home/grupo4/capstone_ws/install/perception_pkg/lib/perception_pkg\n'}
+[6.512400] (perception_pkg) StdoutLine: {'line': b'\n'}
+[6.513115] (perception_pkg) StdoutLine: {'line': b'Installed /home/grupo4/capstone_ws/build/perception_pkg\n'}
+[6.513638] (perception_pkg) StdoutLine: {'line': b'running symlink_data\n'}
+[6.556551] (-) TimerEvent: {}
+[6.657746] (-) TimerEvent: {}
+[6.679904] (perception_pkg) CommandEnded: {'returncode': 0}
+[6.758245] (-) TimerEvent: {}
+[6.785831] (perception_pkg) JobEnded: {'identifier': 'perception_pkg', 'rc': 0}
+[6.789771] (-) EventReactorShutdown: {}
