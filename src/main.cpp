@@ -8,15 +8,16 @@ String device_name = "ESP32-BT-Slave";
 #define mot1_enA 27
 #define mot1_in1 14
 #define mot1_in2 26
+#define enc1_ENCODER_A 22
+#define enc1_ENCODER_B 23
 
 //Motor 2
 // #define mot2_enA 32
 // #define mot2_in1 33
 // #define mot2_in2 25
+// #define enc2_ENCODER_A 21
+// #define enc2_ENCODER_B 19
 
-
-#define enc1_ENCODER_A 18
-#define enc1_ENCODER_B 5
 
 #define PULSOS_POR_VUELTA 16
 
@@ -38,17 +39,31 @@ const float Kp = 1.0, Ki = 0.1, Kd = 0.1, Ts = 0.1;
 float c_prev = 0, e_prev1 = 0, e_prev2 = 0;
 float setpoint = 0;
 
-void IRAM_ATTR contarPulso() {
-    if (digitalRead(enc1_ENCODER_B) == HIGH) {
-        enc1_dir = 1; // sentido horario
+void IRAM_ATTR contarPulsoA() {
+    if (digitalRead(enc1_ENCODER_A) == digitalRead(enc1_ENCODER_B)) {
+        enc1_pulsos--;
     } else {
-        enc1_dir = -1; // sentido antihorario
+        enc1_pulsos++;
     }
-    enc1_pulsos++;
+}
+
+void IRAM_ATTR contarPulsoB() {
+    if (digitalRead(enc1_ENCODER_A) == digitalRead(enc1_ENCODER_B)) {
+        enc1_pulsos++;
+    } else {
+        enc1_pulsos--;
+    }
 }
 
 void mot1_velocidad(int velocidad, int dir) {
-    if (mot1_dir == 1){
+    if (velocidad < 0) {
+        velocidad = 255;
+    } else if (velocidad > 255) {
+        velocidad = 0;
+    }
+    SerialBT.printf("velocidad: %d \n", velocidad);
+    SerialBT.printf("dir: %d \n", dir);
+    if (dir == 1){
         if (velocidad < 185) {
             ledcWrite(MOT1, velocidad);
         } else {
@@ -56,7 +71,7 @@ void mot1_velocidad(int velocidad, int dir) {
         }
         digitalWrite(mot1_in1, LOW);
         digitalWrite(mot1_in2, HIGH);            
-    } else if (mot1_dir == -1){
+    } else if (dir == -1){
         if (velocidad < 185) {
             ledcWrite(MOT1, velocidad);
         } else {
@@ -84,7 +99,9 @@ void setup() {
     ledcSetup(MOT1, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(mot1_enA, MOT1);
 
-    attachInterrupt(enc1_ENCODER_A, contarPulso, RISING);
+    attachInterrupt(enc1_ENCODER_A, contarPulsoA, CHANGE);
+    attachInterrupt(enc1_ENCODER_B, contarPulsoB, CHANGE);
+
 
     digitalWrite(mot1_in1, LOW);
     digitalWrite(mot1_in2, HIGH);
@@ -117,8 +134,15 @@ void loop() {
         float c0 = c_prev + a0*e0 + a1*e_prev1 + a2*e_prev2;
         e_prev2 = e_prev1; e_prev1 = e0; c_prev = c0;
 
-        int pwm = constrain((int)round(c0), 0, 255);
-        mot1_velocidad(pwm, (pwm>0)? 1 : -1);
+        if (c0 > 0) {
+            mot1_dir = -1; // sentido horario
+        } else if (c0 < 0) {
+            mot1_dir = 1; // sentido antihorario
+        } else {
+            mot1_dir = 0; // frenado
+        }
+        int pwm = abs((int)round(c0));
+        mot1_velocidad(pwm, mot1_dir);
 
         // --- debug por BT ---
         SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d\n", setpoint, mot1_rpm, pwm);
