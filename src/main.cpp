@@ -221,3 +221,12 @@ void loop() {
         //SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d  c0: %.2f  dir: %d \n", setpoint, mot1_rpm, pwm, c0, mot1_dir);
     }
 }
+
+
+// TODO:
+// - Comprobar que 1RPM es 1 RPM, recordar que el reductor es de 9,7:1. 
+//    Intentar realizar 10 vueltas y comprobar empiricamente  si se aporxima a una vuelta del eje exterior
+
+// - Si no funciona el metodo anterior, intentar con un sensor estroboscopico.
+// Sensor obtenido, podemos mover los motores a cualquier velocidad y asumo que el sensor nos dara la velocidad real.
+// 5000RPM  serian 500RPM en el eje exterior.
