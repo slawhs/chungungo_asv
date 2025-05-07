@@ -137,9 +137,9 @@ void loop() {
         ultimaMedicion = millis();
 
         // --- PID discreto recursivo ---
-        //float c0 control_pid(setpoint, mot1_rpm);
-        //int pwm = map(c0, -5000, 5000, -185, 185); // PWM de 0 a 255
-
+        //float c0 = control_pid(setpoint, mot1_rpm);
+        //int pwm = map(abs(c0), 0, 5000, 0, 100); // PWM de 0 a 255
+        
         mot1_velocidad(vel1, dir1);
         mot1_direccion(dir1);
 
