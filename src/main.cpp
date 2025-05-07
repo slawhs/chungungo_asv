@@ -24,9 +24,9 @@ String device_name = "ESP32-BT-Slave";
 volatile long enc1_pulsos = 0;
 unsigned long ultimaMedicion = 0;
 float mot1_rpm = 0;
-int mot1_dir = 1; // 1 si es sentido horario, -1 si es antihorario, 0 si es frenado
-int enc1_dir = 0;
 long oldposition0 = 0;
+int vel1, dir1, vel2, dir2;
+
 
 String msg;
 
@@ -36,9 +36,9 @@ String msg;
 #define PWM_RESOLUTION 8
 
 // Variables para PID del primer motor
-const float Kp = 1.0, Ki = 0.1, Kd = 0.1, Ts = 0.1;
+const float Kp = 0.3, Ki = 0.01, Kd = 0.0, Ts = 0.1;
 float c_prev = 0, e_prev1 = 0, e_prev2 = 0;
-float setpoint = 255;
+float setpoint = 0;
 
 void IRAM_ATTR contarPulsoA() {
     if (digitalRead(enc1_ENCODER_A) == digitalRead(enc1_ENCODER_B)) {
@@ -54,39 +54,36 @@ void IRAM_ATTR contarPulsoB() {
         enc1_pulsos++;
     }
 }
-
-void mot1_velocidad(int velocidad, int dir) {
+void mot1_velocidad(int velocidad, int direccion) {
     if (velocidad < 0) {
         velocidad = 0;
-    } else if (velocidad > 255) {
-        velocidad = 255;
+    } else if (velocidad > 100) {
+        velocidad = 100;
     }
-    // SerialBT.printf("velocidad: %d \n", velocidad);
-    // SerialBT.printf("dir: %d \n", dir);
-    if (dir == 1){
-        if (velocidad < 185) {
-            ledcWrite(MOT1, velocidad);
+    int vel_map = map(velocidad, 0, 100, 185, 0); // 0 -> 185 and 100 -> 0
+    if (vel_map < 185) {
+        if (direccion != 0) {
+            ledcWrite(MOT1, vel_map);
         } else {
             ledcWrite(MOT1, 255);
         }
+    } else {
+        ledcWrite(MOT1, 255);
+    }
+}
+void mot1_direccion(int dir) {
+    if (dir == 1) {
         digitalWrite(mot1_in1, LOW);
-        digitalWrite(mot1_in2, HIGH);            
-    } else if (dir == -1){
-        if (velocidad < 185) {
-            ledcWrite(MOT1, velocidad);
-        } else {
-            ledcWrite(MOT1, 255);
-        }
+        digitalWrite(mot1_in2, HIGH);
+    } else if (dir == -1) {
         digitalWrite(mot1_in1, HIGH);
         digitalWrite(mot1_in2, LOW);
-    } else {
+    } else if (dir == 0) {
         // Frenado libre
-        ledcWrite(MOT1, 255);
         digitalWrite(mot1_in1, LOW);
         digitalWrite(mot1_in2, LOW);
     }
 }
-
 
 void setup() {
     pinMode(mot1_enA, OUTPUT);
@@ -99,8 +96,8 @@ void setup() {
     ledcSetup(MOT1, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(mot1_enA, MOT1);
 
-    attachInterrupt(enc1_ENCODER_A, contarPulsoA, CHANGE);
-    attachInterrupt(enc1_ENCODER_B, contarPulsoB, CHANGE);
+    //attachInterrupt(enc1_ENCODER_A, contarPulsoA, CHANGE);
+    //attachInterrupt(enc1_ENCODER_B, contarPulsoB, CHANGE);
 
     digitalWrite(mot1_in1, LOW);
     digitalWrite(mot1_in2, HIGH);
@@ -113,9 +110,22 @@ void setup() {
     ultimaMedicion = millis();
 }
 
+float control_pid(float set_point, float mot_rpm) {
+    // --- PID discreto recursivo ---
+    float e0 = set_point - mot_rpm;
+    float a0 =  Kp + Ki*Ts + Kd/Ts;
+    float a1 = -Kp - 2.0*(Kd/Ts);
+    float a2 =  Kd/Ts;
+    float c0 = c_prev + a0*e0 + a1*e_prev1 + a2*e_prev2;
+    e_prev2 = e_prev1; e_prev1 = e0; c_prev = c0;
+
+    return c0;
+}
+
 void loop() {
     if (SerialBT.available()) {
-        setpoint = SerialBT.readStringUntil('\n').toFloat();
+        msg = SerialBT.readStringUntil('\n');
+        sscanf(msg.c_str(), "%d,%d,%d,%d", &vel1, &dir1, &vel2, &dir2);
     }
 
     delay(20);
@@ -127,25 +137,13 @@ void loop() {
         ultimaMedicion = millis();
 
         // --- PID discreto recursivo ---
-        // float e0 = setpoint - mot1_rpm;
-        // float a0 =  Kp + Ki*Ts + Kd/Ts;
-        // float a1 = -Kp - 2.0*(Kd/Ts);
-        // float a2 =  Kd/Ts;
-        // float c0 = c_prev + a0*e0 + a1*e_prev1 + a2*e_prev2;
-        // e_prev2 = e_prev1; e_prev1 = e0; c_prev = c0;
+        //float c0 control_pid(setpoint, mot1_rpm);
+        //int pwm = map(c0, -5000, 5000, -185, 185); // PWM de 0 a 255
 
-        int pwm = setpoint;
-        if (pwm > 0){
-            mot1_dir = 1; // sentido horario
-        } else if (pwm < 0){
-            mot1_dir = -1; // sentido antihorario
-        } else {
-            mot1_dir = 0; // frenado
-        }
-        pwm = abs(pwm);
-        mot1_velocidad(pwm, mot1_dir);
+        mot1_velocidad(vel1, dir1);
+        mot1_direccion(dir1);
 
         // --- debug por BT ---
-        SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d\n", setpoint, mot1_rpm, pwm);
+        //SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d  c0: %.2f  dir: %d \n", setpoint, mot1_rpm, pwm, c0, mot1_dir);
     }
 }
