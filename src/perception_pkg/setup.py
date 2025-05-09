@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "lidar_processing = perception_pkg.lidar_processing:main"
+            "lidar_processing = perception_pkg.lidar_processing:main",
+            "camera = perception_pkg.camera:main",
+            "color_picker = perception_pkg.color_picker:main"
         ],
     },
 )

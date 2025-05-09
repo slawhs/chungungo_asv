@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import rclpy
-import numpy as np
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
 from sklearn.cluster import KMeans
+
+import numpy as np
+
 
 TIME_INCREMENT = 0.00011
 ANGLE_INCREMENT = 0.005806980188935995  #? radians
@@ -17,7 +19,7 @@ RANGE_MAX = 12
     
 class Lidar(Node): 
     def __init__(self):
-        super().__init__("lidar")
+        super().__init__("Lidar")
 
         # -------- Publishers and Subscribers --------
         self.laser_sub = self.create_subscription(LaserScan, "/scan", self.lidar_scan_cb, 1)
