@@ -40,6 +40,7 @@ class ColorPicker(Node):
         self.bridge = CvBridge()
         self.cap.read()
 
+
     def recieve_image_cb(self, img):
         # self.get_logger().info("Recieving video frame")
         self.frame = self.bridge.imgmsg_to_cv2(img)
