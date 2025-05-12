@@ -27,9 +27,6 @@ class Camera(Node):
         timer_period = 0.1  # Segundos
         self.camera_timer = self.create_timer(timer_period, self.recieve_image_cb)
 
-        self.red_hsv = np.array([None, None, None])
-        self.green_hsv = np.array([None, None, None])
-
         self.lower_red = np.array([0, 0, 0])
         self.upper_red = np.array([0, 0, 0])
 
@@ -43,12 +40,12 @@ class Camera(Node):
     def setup_camera(self):
         self.cap = cv2.VideoCapture(N_CAM, cv2.CAP_V4L)
         self.bridge = CvBridge()
-        ret, frame = self.cap.read()
+        self.cap.read()
 
 
     def recieve_image_cb(self):
         ret, cv_frame = self.cap.read()
-        cv2.flip(cv_frame, 1, cv_frame)
+        # cv2.flip(cv_frame, 1, cv_frame)
         img_msg = self.bridge.cv2_to_imgmsg(cv_frame, encoding='bgr8')
         # cv2.imshow("Camera", cv_frame)
         self.color_masks(ret, cv_frame)
@@ -64,14 +61,12 @@ class Camera(Node):
 
     def update_thresholds_cb(self, data):
         if data.color == 0:  # Rojo
-            self.red_hsv = np.array([data.h, data.s, data.v]) 
-            self.lower_red = np.array([data.h - 10, 100, 100])
-            self.upper_red = np.array([data.h + 10, 255, 255])
+            self.lower_red = np.array([data.h_low, 100, 100]) 
+            self.upper_red = np.array([data.h_high, 255, 255])
 
         if data.color == 1:  # Verde
-            self.green_hsv = np.array([data.h, data.s, data.v])
-            self.lower_green = np.array([data.h - 10, 100, 100])
-            self.upper_green = np.array([data.h + 10, 255, 255])
+            self.lower_green = np.array([data.h_low, 100, 100]) 
+            self.upper_green = np.array([data.h_high, 255, 255])
 
     def color_masks(self, ret, cv_frame):
         frame_smooth = cv2.GaussianBlur(cv_frame, (5,5), 0)
@@ -121,10 +116,6 @@ class Camera(Node):
 
         cv2.imshow('Camera', cv_frame)
         cv2.imshow('MaskedBuoys', buoy_mask_frame)
-
-
-
-        
 
 
 def main(args=None):

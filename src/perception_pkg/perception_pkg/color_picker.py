@@ -4,14 +4,13 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Vector3Stamped
 from chungungo_interfaces.msg import HSVColor
 
 import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-N_CAM = 2
+N_CAM = 0
 
 class ColorPicker(Node):
     def __init__(self): 
@@ -23,30 +22,71 @@ class ColorPicker(Node):
         self.green_pub = self.create_publisher(HSVColor, "/color_picker/green", 1)
         
         # -------- Atributes --------
-        self.red_hsv = np.array([None, None, None])
-        self.green_hsv = np.array([None, None, None])
+        self.lower_red = np.array([None, None, None])
+        self.upper_red = np.array([None, None, None])
+        
+        self.lower_green = np.array([None, None, None])
+        self.upper_green = np.array([None, None, None])
+
         self.left_clicks = 0
         self.right_clicks = 0
-        self.points = []
+        
+        self.red_points = np.zeros((4, 2), dtype=np.int32)
+        self.green_points = np.zeros((4, 2), dtype=np.int32)
 
         # -------- Setup Routines --------
         self.setup_camera()
+        self.get_logger().info("Finished Setup")
 
     def setup_camera(self):
         cv2.namedWindow("ColorPicker")
-        cv2.setMouseCallback("ColorPicker", self.mouse_cb)
+        cv2.setMouseCallback("ColorPicker", self.select_area_cb)
 
-        self.cap = cv2.VideoCapture(N_CAM, cv2.CAP_V4L)
+        # self.cap = cv2.VideoCapture(N_CAM, cv2.CAP_V4L)
         self.bridge = CvBridge()
-        self.cap.read()
+        # self.cap.read()
 
 
     def recieve_image_cb(self, img):
-        # self.get_logger().info("Recieving video frame")
-        self.frame = self.bridge.imgmsg_to_cv2(img)
-        
-        cv2.imshow("ColorPicker", self.frame)
-        cv2.waitKey(1)
+        try:
+            self.frame = self.bridge.imgmsg_to_cv2(img)
+            
+            # Draw selected points
+            for i in range(self.left_clicks):
+                cv2.circle(self.frame, tuple(self.red_points[i]), 5, (0,0,255), -1)
+            for i in range(self.right_clicks):
+                cv2.circle(self.frame, tuple(self.green_points[i]), 5, (0,255,0), -1)
+
+            if self.left_clicks == 4:
+                poly_points = self.red_points.reshape((-1, 1, 2))
+                cv2.polylines(self.frame, [poly_points], isClosed=(self.left_clicks==4), color=(0,0,255), thickness=2)
+                
+                red_pixels = self.get_pixels_in_area(self.red_points)
+
+                self.lower_red, self.upper_red = self.get_hsv_range(red_pixels)
+            
+            if self.right_clicks == 4:
+                poly_points = self.green_points.reshape((-1, 1, 2))
+                cv2.polylines(self.frame, [poly_points], isClosed=(self.right_clicks==4), color=(0,255,0), thickness=2)
+    
+                green_pixels = self.get_pixels_in_area(self.green_points)
+
+                self.lower_green, self.upper_green = self.get_hsv_range(green_pixels)
+
+            key = cv2.waitKey(1)
+            
+            if key == 13 and self.left_clicks == 4 and self.right_clicks == 4:
+                self.send_color_msgs()
+
+            if key == ord('q'):
+                exit()
+
+
+            cv2.imshow("ColorPicker", self.frame)
+            cv2.waitKey(1)
+
+        except CvBridgeError as e:
+            self.get_logger().error(f"CV Bridge error: {e}")
 
 
     def mouse_cb(self, event, x, y, flags, param):
@@ -63,22 +103,80 @@ class ColorPicker(Node):
         if (self.red_hsv.all() != None) and (self.green_hsv.all() != None):
             self.send_color_msgs()
             exit()
+
+
+    def get_hsv_range(self, masked_pixels):
+        h_min, s_min, v_min = np.min(masked_pixels, axis=0)
+        h_max, s_max, v_max = np.max(masked_pixels, axis=0)
+
+        lower_hsv = np.array([
+            max(0, h_min),
+            max(0, s_min),
+            max(0, v_min)
+        ])
+
+        upper_hsv = np.array([
+            min(179, h_max),
+            min(255, s_max),
+            min(255, v_max)
+        ])
+
+        return lower_hsv, upper_hsv
+
+
+    def get_pixels_in_area(self, points):
+        hsv_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
+        
+        mask = np.zeros(self.frame.shape[:2], dtype=np.uint8)
+        cv2.fillConvexPoly(mask, points, 255)
+        
+        masked_pixels = hsv_frame[mask == 255] 
+        
+        return masked_pixels
     
 
-    def send_color_msgs(self):
-            red_msg = HSVColor()
-            red_msg.color = 0 
-            red_msg.h = int(self.red_hsv[0])
-            red_msg.s = int(self.red_hsv[1])
-            red_msg.v = int(self.red_hsv[2])
-            self.red_pub.publish(red_msg)
+    def select_area_cb(self, event, x, y, flags, param):
+        
+        if event == cv2.EVENT_LBUTTONDOWN and self.left_clicks < 4:
+            self.red_points[self.left_clicks] = [x, y]
+            self.left_clicks += 1
 
-            green_msg = HSVColor()
-            green_msg.color = 1
-            green_msg.h = int(self.green_hsv[0])
-            green_msg.s = int(self.green_hsv[1])
-            green_msg.v = int(self.green_hsv[2])
-            self.green_pub.publish(green_msg)
+        elif event ==cv2.EVENT_RBUTTONDOWN and self.right_clicks < 4:
+            self.green_points[self.right_clicks] = [x,y]
+            self.right_clicks += 1
+
+
+    def send_color_msgs(self):
+        red_msg = HSVColor()
+        red_msg.color = 0 
+        
+        red_msg.h_low = int(self.lower_red[0])
+        red_msg.s_low = int(self.lower_red[1])
+        red_msg.v_low = int(self.lower_red[2])
+        
+        red_msg.h_high = int(self.upper_red[0])
+        red_msg.s_high = int(self.upper_red[1])
+        red_msg.v_high = int(self.upper_red[2])
+        
+        self.red_pub.publish(red_msg)
+        self.left_clicks = 0
+
+        green_msg = HSVColor()
+        green_msg.color = 1
+
+        green_msg.h_low = int(self.lower_green[0])
+        green_msg.s_low = int(self.lower_green[1])
+        green_msg.v_low = int(self.lower_green[2])
+        
+        green_msg.h_high = int(self.upper_green[0])
+        green_msg.s_high = int(self.upper_green[1])
+        green_msg.v_high = int(self.upper_green[2])
+
+        self.green_pub.publish(green_msg)
+        self.right_clicks = 0
+
+        self.get_logger().info("Color messages sent")
+
 
 
 
@@ -87,6 +185,7 @@ def main(args=None):
     node = ColorPicker()
     
     rclpy.spin(node)
+    
     rclpy.shutdown()
     node.cap.release()
     cv2.destroyAllWindows()
