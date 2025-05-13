@@ -19,10 +19,11 @@ String device_name = "ESP32-BT-Slave";
 #define enc2_ENCODER_B 19
 
 
-#define PULSOS_POR_VUELTA 16
+#define PULSOS_POR_VUELTA 32
 
 volatile long enc1_pulsos = 0;
 volatile long enc2_pulsos = 0;
+float vueltas2 = 0.0;
 unsigned long ultimaMedicion = 0;
 float mot1_rpm = 0;
 float mot2_rpm = 0;
@@ -60,19 +61,19 @@ void IRAM_ATTR contarPulsoB1() {
 }
 
 void IRAM_ATTR contarPulsoA2() {
-    if (digitalRead(enc2_ENCODER_A) == digitalRead(enc2_ENCODER_B)) {
+    if (digitalRead(enc2_ENCODER_A) != digitalRead(enc2_ENCODER_B)) {
         enc2_pulsos++;
     } else {
         enc2_pulsos--;
     }
 }
-void IRAM_ATTR contarPulsoB2() {
-    if (digitalRead(enc2_ENCODER_A) == digitalRead(enc2_ENCODER_B)) {
-        enc2_pulsos--;
-    } else {
-        enc2_pulsos++;
-    }
-}
+// void IRAM_ATTR contarPulsoB2() {
+//     if (digitalRead(enc2_ENCODER_A) == digitalRead(enc2_ENCODER_B)) {
+//         enc2_pulsos--;
+//     } else {
+//         enc2_pulsos++;
+//     }
+// }
 
 void mot1_velocidad(int velocidad, int direccion) {
     if (velocidad < 0) {
@@ -161,8 +162,8 @@ void setup() {
     attachInterrupt(enc1_ENCODER_A, contarPulsoA1, CHANGE);
     attachInterrupt(enc1_ENCODER_B, contarPulsoB1, CHANGE);
     // Configurar interrupciones para los encoders
-    attachInterrupt(enc2_ENCODER_A, contarPulsoA2, CHANGE);
-    attachInterrupt(enc2_ENCODER_B, contarPulsoB2, CHANGE);
+    attachInterrupt(enc2_ENCODER_A, contarPulsoA2, RISING);
+    //attachInterrupt(enc2_ENCODER_B, contarPulsoB2, CHANGE);
 
     digitalWrite(mot1_in1, LOW);
     digitalWrite(mot1_in2, HIGH);
@@ -199,25 +200,27 @@ void loop() {
     delay(20);
     if (millis() - ultimaMedicion >= 100) {
         // --- mido rpm ---
-        float rpm = 1000.0 * PULSOS_POR_VUELTA / 60.0; // RPM
-        mot1_rpm = (float)(enc1_pulsos - oldposition0) * rpm / (millis() - ultimaMedicion); //RPM
-        mot2_rpm = (float)(enc2_pulsos - oldposition1) * rpm / (millis() - ultimaMedicion); //RPM
-        oldposition0 = enc1_pulsos;
-        oldposition1 = enc2_pulsos;
-        ultimaMedicion = millis();
+        mot1_rpm = (float)((enc1_pulsos * 600 / PULSOS_POR_VUELTA)/9.7);
+        mot2_rpm = (float)((enc2_pulsos * 600 / PULSOS_POR_VUELTA)/9.7);
+        enc1_pulsos = 0;
+        enc2_pulsos = 0;
 
         // --- PID discreto recursivo ---
         //float c0 = control_pid(setpoint, mot1_rpm);
         //int pwm = map(abs(c0), 0, 5000, 0, 100); // PWM de 0 a 255
-
+    
         mot1_velocidad(vel1, dir1);
         mot1_direccion(dir1);
 
         mot2_velocidad(vel2, dir2);
         mot2_direccion(dir2);
 
+        
         // --- debug por BT ---
+        // float enc2_pulsos_float = (float)enc2_pulsos;
+        //SerialBT.printf("pulsos2: %.2f  vueltas2: %.2f rpm: %.1f \n", enc2_pulsos_float, vueltas2, mot2_rpm);
         SerialBT.printf("rpm1: %.2f rpm2: %.2f \n", mot1_rpm, mot2_rpm);
+        ultimaMedicion = millis();
         //SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d  c0: %.2f  dir: %d \n", setpoint, mot1_rpm, pwm, c0, mot1_dir);
     }
 }
