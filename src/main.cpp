@@ -1,8 +1,8 @@
 #include <Arduino.h>
-#include "BluetoothSerial.h"
+//#include "BluetoothSerial.h"
 
-BluetoothSerial SerialBT;
-String device_name = "ESP32-BT-Slave";
+// BluetoothSerial SerialBT;
+// String device_name = "ESP32-BT-Slave";
 
 // Motor 1
 #define mot1_enA 27
@@ -23,12 +23,9 @@ String device_name = "ESP32-BT-Slave";
 
 volatile long enc1_pulsos = 0;
 volatile long enc2_pulsos = 0;
-float vueltas2 = 0.0;
 unsigned long ultimaMedicion = 0;
 float mot1_rpm = 0;
 float mot2_rpm = 0;
-long oldposition0 = 0;
-long oldposition1 = 0;
 int vel1, dir1, vel2, dir2;
 
 
@@ -46,17 +43,10 @@ float c_prev = 0, e_prev1 = 0, e_prev2 = 0;
 float setpoint = 0;
 
 void IRAM_ATTR contarPulsoA1() {
-    if (digitalRead(enc1_ENCODER_A) == digitalRead(enc1_ENCODER_B)) {
+    if (digitalRead(enc1_ENCODER_A) != digitalRead(enc1_ENCODER_B)) {
         enc1_pulsos++;
     } else {
         enc1_pulsos--;
-    }
-}
-void IRAM_ATTR contarPulsoB1() {
-    if (digitalRead(enc1_ENCODER_A) == digitalRead(enc1_ENCODER_B)) {
-        enc1_pulsos--;
-    } else {
-        enc1_pulsos++;
     }
 }
 
@@ -67,13 +57,6 @@ void IRAM_ATTR contarPulsoA2() {
         enc2_pulsos--;
     }
 }
-// void IRAM_ATTR contarPulsoB2() {
-//     if (digitalRead(enc2_ENCODER_A) == digitalRead(enc2_ENCODER_B)) {
-//         enc2_pulsos--;
-//     } else {
-//         enc2_pulsos++;
-//     }
-// }
 
 void mot1_velocidad(int velocidad, int direccion) {
     if (velocidad < 0) {
@@ -159,11 +142,8 @@ void setup() {
     ledcSetup(MOT1, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(mot1_enA, MOT1);
 
-    attachInterrupt(enc1_ENCODER_A, contarPulsoA1, CHANGE);
-    attachInterrupt(enc1_ENCODER_B, contarPulsoB1, CHANGE);
-    // Configurar interrupciones para los encoders
+    attachInterrupt(enc1_ENCODER_A, contarPulsoA1, RISING);
     attachInterrupt(enc2_ENCODER_A, contarPulsoA2, RISING);
-    //attachInterrupt(enc2_ENCODER_B, contarPulsoB2, CHANGE);
 
     digitalWrite(mot1_in1, LOW);
     digitalWrite(mot1_in2, HIGH);
@@ -172,9 +152,10 @@ void setup() {
     digitalWrite(mot2_in2, HIGH);
 
     Serial.begin(115200);
-    SerialBT.begin(device_name);  // Bluetooth device name
+    //SerialBT.begin(device_name);  // Bluetooth device name
 
-    Serial.printf("The device with name \"%s\" is started.\nNow you can pair it with Bluetooth!\n", device_name.c_str());
+    Serial.println("The device started");
+    //Serial.printf("The device with name \"%s\" is started.\nNow you can pair it with Bluetooth!\n", device_name.c_str());
 
     ultimaMedicion = millis();
 }
@@ -192,8 +173,8 @@ float control_pid(float set_point, float mot_rpm) {
 }
 
 void loop() {
-    if (SerialBT.available()) {
-        msg = SerialBT.readStringUntil('\n');
+    if (Serial.available()) {
+        msg = Serial.readStringUntil('\n');
         sscanf(msg.c_str(), "%d,%d,%d,%d", &vel1, &dir1, &vel2, &dir2);
     }
 
@@ -219,17 +200,8 @@ void loop() {
         // --- debug por BT ---
         // float enc2_pulsos_float = (float)enc2_pulsos;
         //SerialBT.printf("pulsos2: %.2f  vueltas2: %.2f rpm: %.1f \n", enc2_pulsos_float, vueltas2, mot2_rpm);
-        SerialBT.printf("rpm1: %.2f rpm2: %.2f \n", mot1_rpm, mot2_rpm);
+        Serial.printf("rpm1: %.2f | rpm2: %.2f \n", mot1_rpm, mot2_rpm);
         ultimaMedicion = millis();
         //SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d  c0: %.2f  dir: %d \n", setpoint, mot1_rpm, pwm, c0, mot1_dir);
     }
 }
-
-
-// TODO:
-// - Comprobar que 1RPM es 1 RPM, recordar que el reductor es de 9,7:1. 
-//    Intentar realizar 10 vueltas y comprobar empiricamente  si se aporxima a una vuelta del eje exterior
-
-// - Si no funciona el metodo anterior, intentar con un sensor estroboscopico.
-// Sensor obtenido, podemos mover los motores a cualquier velocidad y asumo que el sensor nos dara la velocidad real.
-// 5000RPM  serian 500RPM en el eje exterior.
