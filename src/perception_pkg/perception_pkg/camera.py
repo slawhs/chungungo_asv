@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-N_CAM = 2
+N_CAM = 0
 BUOY_AREA_TH = 10
 
 
