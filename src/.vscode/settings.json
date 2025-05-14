@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "/home/grupo4/.local/bin"
+    ]
+}
