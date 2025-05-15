@@ -36,6 +36,7 @@ String msg;
 #define MOT2 1
 #define PWM_FREQ 5000
 #define PWM_RESOLUTION 8
+#define MAX_VEL 220
 
 // Variables para PID del primer motor
 const float Kp = 0.3, Ki = 0.01, Kd = 0.0, Ts = 0.1;
@@ -64,8 +65,11 @@ void mot1_velocidad(int velocidad, int direccion) {
     } else if (velocidad > 100) {
         velocidad = 100;
     }
-    int vel_map = map(velocidad, 0, 100, 185, 0); // 0 -> 185 and 100 -> 0
-    if (vel_map < 185) {
+    int vel_map = map(velocidad, 0, 100, MAX_VEL, 0); // 0 -> 185 and 100 -> 0
+    //int vel_map = velocidad;
+    ledcWrite(MOT1, vel_map);
+
+    if (vel_map < MAX_VEL) {
         if (direccion != 0) {
             ledcWrite(MOT1, vel_map);
         } else {
@@ -95,8 +99,12 @@ void mot2_velocidad(int velocidad, int direccion) {
     } else if (velocidad > 100) {
         velocidad = 100;
     }
-    int vel_map = map(velocidad, 0, 100, 185, 0); // 0 -> 185 and 100 -> 0
-    if (vel_map < 185) {
+    int vel_map = map(velocidad, 0, 100, MAX_VEL, 0); // 0 -> 185 and 100 -> 0
+    // int vel_map = velocidad;
+    ledcWrite(MOT2, vel_map);
+
+    
+    if (vel_map < MAX_VEL) {
         if (direccion != 0) {
             ledcWrite(MOT2, vel_map);
         } else {
@@ -200,7 +208,7 @@ void loop() {
         // --- debug por BT ---
         // float enc2_pulsos_float = (float)enc2_pulsos;
         //SerialBT.printf("pulsos2: %.2f  vueltas2: %.2f rpm: %.1f \n", enc2_pulsos_float, vueltas2, mot2_rpm);
-        Serial.printf("rpm1: %.2f | rpm2: %.2f \n", mot1_rpm, mot2_rpm);
+        Serial.printf("%.2f | %.2f\n", mot1_rpm, mot2_rpm);
         ultimaMedicion = millis();
         //SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d  c0: %.2f  dir: %d \n", setpoint, mot1_rpm, pwm, c0, mot1_dir);
     }
