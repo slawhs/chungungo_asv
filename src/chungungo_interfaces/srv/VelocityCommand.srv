@@ -1,0 +1,8 @@
+uint8 thruster
+uint8 left_direction
+int64 left_speed
+uint8 right_direction
+int64 right_speed
+---
+int64 left_rpm
+int64 right_rpm
