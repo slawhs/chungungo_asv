@@ -11,6 +11,7 @@ class ThrustersVelMux(Node):
         super().__init__("ThrustersVelocityMux")
 
         # -------- Publishers, Subscribers and Services --------
+        #* crear subscriber de nodos de teleop, control de boyas, control de distancias. 
         self.vel_cmd_cli = self.create_client(VelocityCommand, '/vel_command')
         while not self.vel_cmd_cli.wait_for_service(timeout_sec=0.5):
             self.get_logger().info('Service not available, waiting again...')
