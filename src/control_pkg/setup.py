@@ -20,6 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "joystick_velocity = control_pkg.joystick_velocity:main",
+            "thrusters_controller = control_pkg.thrusters_controller:main",
+            "thrusters_velocity_mux = control_pkg.thrusters_velocity_mux:main"
         ],
     },
 )

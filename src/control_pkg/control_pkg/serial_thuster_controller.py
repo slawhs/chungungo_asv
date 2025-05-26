@@ -8,13 +8,14 @@ from serial import Serial
 DEVICE_NAME = '/dev/ttyUSB0'
 
 
-class ThrusterController(Node):
+class SerialThrusterController(Node):
     def __init__(self):
-        super().__init__("ThrusterController")
+        super().__init__("SerialThrusterController")
 
         # -------- Publishers and Subscribers --------
         # self.left_motor_sub(String,)
         # -------- Atributes --------
+        self.timer = self.create_timer(0.2, self.timer_cb)
 
         # -------- Setup Routines --------
         self.setup_serial()
@@ -25,23 +26,34 @@ class ThrusterController(Node):
         if not self.serial.isOpen():
             self.get_logger().error('Serial port is closed')
 
+    def timer_cb(self):
+        vel1, dir1 = input("ingrese vel1,dir1: ").strip().split(",")
+        vel2, dir2 = input("ingrese vel2,dir2: ").strip().split(",")
+
+        rpm_msg = f"{vel1},{dir1},{vel2},{dir2}"
+        self.serial.write(rpm_msg.encode('utf-8'))
+
+ 
+        rpm_feedback = self.serial.readline()
+        rpm_feedback = rpm_feedback.decode('utf-8')
+
+        rpm_motor1, rpm_motor2 = rpm_feedback.strip().split(" | ")
+
+        rpm_motor1 = float(rpm_motor1)
+        rpm_motor2 = float(rpm_motor2)
+
+        print(f"Motor 1 = {rpm_motor1} rpm")
+        print(f"Motor 2 = {rpm_motor2} rpm")
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = SerialThrusterController()
+    rclpy.spin(node)
     
+    node.serial.close()
+    rclpy.shutdown()
 
 
-vel1, dir1 = input("ingrese vel1,dir1: ").strip().split(",")
-vel2, dir2 = input("ingrese vel2,dir2: ").strip().split(",")
-
-rpm_msg = f"{vel1},{dir1},{vel2},{dir2}"
-serial.write(rpm_msg.encode('utf-8'))
-
-while True:
-    rpm_feedback = serial.readline()
-    rpm_feedback = rpm_feedback.decode('utf-8')
-
-    rpm_motor1, rpm_motor2 = rpm_feedback.strip().split(" | ")
-
-    rpm_motor1 = float(rpm_motor1)
-    rpm_motor2 = float(rpm_motor2)
-
-    print(f"Motor 1 = {rpm_motor1} rpm")
-    print(f"Motor 2 = {rpm_motor2} rpm")
+if __name__ == "__main__":
+    main()
