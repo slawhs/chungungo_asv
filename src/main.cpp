@@ -1,8 +1,8 @@
 #include <Arduino.h>
-#include "BluetoothSerial.h"
+// #include "BluetoothSerial.h"
 
-BluetoothSerial SerialBT;
-String device_name = "ESP32-BT-Slave";
+// BluetoothSerial SerialBT;
+// String device_name = "ESP32-BT-Slave";
 
 // Motor 1
 #define mot1_enA 27
@@ -135,6 +135,17 @@ void mot2_direccion(int dir) {
         digitalWrite(mot2_in2, LOW);
     }
 }
+
+int valor(int rpm_actual, int rpm_deseado) {
+    int error = rpm_deseado - rpm_actual;
+    //int c = Kp * error + Ki * (error + e_prev1) * Ts + Kd * (error - e_prev2) / Ts;
+    // De miomento solo usaremos control proporcional
+    int c = Kp;
+    e_prev2 = e_prev1;
+    e_prev1 = error;
+    return c;
+}
+
 void setup() {
     pinMode(mot1_enA, OUTPUT);
     pinMode(mot1_in1, OUTPUT);
@@ -171,29 +182,18 @@ void setup() {
     digitalWrite(mot2_in2, HIGH);
 
     Serial.begin(115200);
-    SerialBT.begin(device_name);  // Bluetooth device name
+    //SerialBT.begin(device_name);  // Bluetooth device name
 
-    Serial.printf("The device with name \"%s\" is started.\nNow you can pair it with Bluetooth!\n", device_name.c_str());
+    //Serial.printf("The device with name \"%s\" is started.\nNow you can pair it with Bluetooth!\n", device_name.c_str());
 
     ultimaMedicion = millis();
 }
 
-float control_pid(float set_point, float mot_rpm) {
-    // --- PID discreto recursivo ---
-    float e0 = set_point - mot_rpm;
-    float a0 =  Kp + Ki*Ts + Kd/Ts;
-    float a1 = -Kp - 2.0*(Kd/Ts);
-    float a2 =  Kd/Ts;
-    float c0 = c_prev + a0*e0 + a1*e_prev1 + a2*e_prev2;
-    e_prev2 = e_prev1; e_prev1 = e0; c_prev = c0;
-
-    return c0;
-}
-
 void loop() {
-    if (SerialBT.available()) {
-        msg = SerialBT.readStringUntil('\n');
-        sscanf(msg.c_str(), "%d,%d,%d,%d", &vel1, &dir1, &vel2, &dir2);
+    if (Serial.available()) {
+        msg = Serial.readStringUntil('\n');
+        //sscanf(msg.c_str(), "%d,%d,%d,%d", &vel1, &dir1, &vel2, &dir2);
+        setpoint = msg.toInt();
     }
 
     delay(20);
@@ -206,27 +206,32 @@ void loop() {
         oldposition1 = enc2_pulsos;
         ultimaMedicion = millis();
 
-        // --- PID discreto recursivo ---
-        //float c0 = control_pid(setpoint, mot1_rpm);
-        //int pwm = map(abs(c0), 0, 5000, 0, 100); // PWM de 0 a 255
+        int c = valor(mot1_rpm, setpoint);
+        vel1 = abs(c); // Set velocity as the absolute value of c
 
+        if (c > 0) {
+            dir1 = 1; // Forward direction
+        } else if (c < 0) {
+            dir1 = -1; // Reverse direction
+        } else {
+            dir1 = 0; // Stop
+        }
         mot1_velocidad(vel1, dir1);
         mot1_direccion(dir1);
 
-        mot2_velocidad(vel2, dir2);
-        mot2_direccion(dir2);
+
+        // mot2_velocidad(vel2, dir2);
+        // mot2_direccion(dir2);
 
         // --- debug por BT ---
-        SerialBT.printf("rpm1: %.2f rpm2: %.2f \n", mot1_rpm, mot2_rpm);
-        //SerialBT.printf("SP: %.1f  RPM: %.2f  PWM: %d  c0: %.2f  dir: %d \n", setpoint, mot1_rpm, pwm, c0, mot1_dir);
+        Serial.print("c:");
+        Serial.print(c);
+        Serial.print(",");
+        Serial.print("RPM1:");
+        Serial.print(mot1_rpm);
+        Serial.print(",");-
+        Serial.print("Setpoint1:");
+        Serial.println(setpoint);
+       // Serial.printf("rpm1: %.2f rpm2: %.2f \n", mot1_rpm, mot2_rpm);
     }
 }
-
-
-// TODO:
-// - Comprobar que 1RPM es 1 RPM, recordar que el reductor es de 9,7:1. 
-//    Intentar realizar 10 vueltas y comprobar empiricamente  si se aporxima a una vuelta del eje exterior
-
-// - Si no funciona el metodo anterior, intentar con un sensor estroboscopico.
-// Sensor obtenido, podemos mover los motores a cualquier velocidad y asumo que el sensor nos dara la velocidad real.
-// 5000RPM  serian 500RPM en el eje exterior.
