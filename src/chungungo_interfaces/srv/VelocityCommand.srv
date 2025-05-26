@@ -1,0 +1,7 @@
+int8 left_direction
+int64 left_speed
+int8 right_direction
+int64 right_speed
+---
+int32 left_rpm
+int32 right_rpm

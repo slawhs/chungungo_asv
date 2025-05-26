@@ -61,11 +61,11 @@ class Camera(Node):
 
     def update_thresholds_cb(self, data):
         if data.color == 0:  # Rojo
-            self.lower_red = np.array([data.h_low, 100, 100]) 
+            self.lower_red = np.array([data.h_low, 100, 50]) 
             self.upper_red = np.array([data.h_high, 255, 255])
 
         if data.color == 1:  # Verde
-            self.lower_green = np.array([data.h_low, 100, 100]) 
+            self.lower_green = np.array([data.h_low, 100, 50]) 
             self.upper_green = np.array([data.h_high, 255, 255])
 
     def color_masks(self, ret, cv_frame):

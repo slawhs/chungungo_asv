@@ -3,11 +3,11 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
-from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
 
 import numpy as np
 
-
+# ------ LiDAR Parameters ------
 TIME_INCREMENT = 0.00011
 ANGLE_INCREMENT = 0.005806980188935995  #? radians
 ANGLE_MIN = -3.1241390705108643
@@ -15,7 +15,9 @@ ANGLE_MAX = 3.1415927410125732
 RANGE_MIN = 0.15
 RANGE_MAX = 12
 
-    
+# ------ Clustering parameters ------
+EPS = 0.05  #? Distance (meters) between two points to be considered in the same cluster
+CLUSTER_MIN_SAMPLES = 5
     
 class Lidar(Node): 
     def __init__(self):
@@ -30,6 +32,8 @@ class Lidar(Node):
         # -------- Atributes --------
         self.laser_ranges = None
         self.polar_samples = None
+        self.carthesian_samples = None
+        self.clustering = DBSCAN(eps=EPS, min_samples=CLUSTER_MIN_SAMPLES)
 
     def lidar_scan_cb(self, msg: LaserScan):  #? Jorge: 720 muestras - Nosotros 1080 muestras
         self.front_ranges = msg.ranges[1035:] + msg.ranges[:45]  #? 30°
@@ -48,8 +52,23 @@ class Lidar(Node):
     def detect_buoys(self, msg):
         self.samples_to_polar(msg)
         np.nan_to_num(self.polar_samples, copy=False, posinf=13.0)
-        kmeans = KMeans(n_clusters=3, random_state=0).fit(self.polar_samples)
-        self.publish_centroids(kmeans.cluster_centers_)
+        self.polar_to_carthesian()
+
+        clusters = self.clustering.fit(self.carthesian_points)
+        centroids = self.get_centroids(clusters)
+        self.publish_centroids(centroids)
+
+    def get_centroids(self, clusters):
+        labels = np.unique(clusters.labels_)
+        labels = labels[labels != -1]
+
+        centroids = np.zeros((len(labels), self.carthesian_points.shape[1]))
+
+        for i, label in enumerate(labels):
+            centroids[i] = np.mean(self.carthesian_points[clusters.labels_ == label])
+
+        return centroids
+
 
     def samples_to_polar(self, msg):
         angle_left = ANGLE_MAX*2*3/4
@@ -79,6 +98,38 @@ class Lidar(Node):
         # print("--------------------------------- NEW ENTRY ---------------------------------")
         # print(self.polar_samples,"\n")
     
+    def polar_to_carthesian(self):
+        r = self.polar_samples[:, 0]
+        theta = self.polar_samples[:, 1]
+        
+        # Calculate x and y coordinates using vectorized operations
+        x = -r * np.cos(theta)
+        y = r * np.sin(theta)
+        
+        # Stack x and y to create the Cartesian coordinates
+        self.carthesian_samples = np.column_stack((x, y))
+
+    def carthesian_to_polar(self, carthesian_points):
+            
+        x = carthesian_points[:, 0]
+        y = carthesian_points[:, 1]
+        
+        # Calculate radius
+        r = np.sqrt(x**2 + y**2)
+        
+        # Calculate theta (angle) - using atan2 and accounting for your coordinate system
+        # Since in your polar_to_carthesian: x = -r*cos(theta), y = r*sin(theta)
+        # We need to use atan2(y, -x) to get back the original theta
+        theta = np.arctan2(y, -x)
+        
+        # Ensure theta is in [0, 2π) range
+        theta = np.mod(theta, 2*np.pi)
+        
+        # Stack r and theta to create the polar coordinates
+        polar_samples = np.column_stack((r, theta))
+        
+        return polar_samples
+
     def publish_centroids(self, cluster_centers):
         msg = self.centroid_to_laserscan(cluster_centers)
         self.centroids_pub.publish(msg)
