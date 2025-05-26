@@ -8,8 +8,8 @@
 #define mot1_enA 27
 #define mot1_in1 14
 #define mot1_in2 26
-#define enc1_ENCODER_A 23
-#define enc1_ENCODER_B 22
+#define enc1_ENCODER_A 22
+#define enc1_ENCODER_B 23
 
 //Motor 2
 #define mot2_enA 32
@@ -27,6 +27,7 @@ unsigned long ultimaMedicion = 0;
 float mot1_rpm = 0;
 float mot2_rpm = 0;
 int vel1, dir1, vel2, dir2;
+bool ledState = false;
 
 
 String msg;
@@ -39,7 +40,7 @@ String msg;
 #define MAX_VEL 220
 
 // Variables para PID del primer motor
-const float Kp = 0.3, Ki = 0.01, Kd = 0.0, Ts = 0.1;
+const float Kp = 1.5, Ki = 0.03, Kd = 0.0015, Ts = 0.1;
 float c_prev = 0, e_prev1 = 0, e_prev2 = 0;
 float setpoint = 0;
 
@@ -128,17 +129,26 @@ void mot2_direccion(int dir) {
     }
 }
 
-int valor(int rpm_actual, int rpm_deseado) {
-    int error = rpm_deseado - rpm_actual;
-    //int c = Kp * error + Ki * (error + e_prev1) * Ts + Kd * (error - e_prev2) / Ts;
-    // De miomento solo usaremos control proporcional
-    int c = Kp;
-    e_prev2 = e_prev1;
-    e_prev1 = error;
-    return c;
+float control_pid(float set_point, float mot_rpm) {
+    // --- PID discreto recursivo ---
+    float e0 = set_point - mot_rpm;
+    float a0 =  Kp + Ki*Ts + Kd/Ts;
+    float a1 = -Kp - 2.0*(Kd/Ts);
+    float a2 =  Kd/Ts;
+    float c0 = c_prev + a0*e0 + a1*e_prev1 + a2*e_prev2;
+    e_prev2 = e_prev1; e_prev1 = e0; c_prev = c0;
+        if (c0 > 100.0){
+      c0 = 100.0;
+    }
+    if (c0 < -100.0){
+      c0 = -100.0;
+    }
+    return c0;
 }
 
 void setup() {
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
     pinMode(mot1_enA, OUTPUT);
     pinMode(mot1_in1, OUTPUT);
     pinMode(mot1_in2, OUTPUT);
@@ -173,7 +183,7 @@ void setup() {
     Serial.begin(115200);
     //SerialBT.begin(device_name);  // Bluetooth device name
 
-    Serial.println("The device started");
+    //Serial.println("The device started");
     //Serial.printf("The device with name \"%s\" is started.\nNow you can pair it with Bluetooth!\n", device_name.c_str());
 
     ultimaMedicion = millis();
@@ -184,46 +194,46 @@ void loop() {
         msg = Serial.readStringUntil('\n');
         //sscanf(msg.c_str(), "%d,%d,%d,%d", &vel1, &dir1, &vel2, &dir2);
         setpoint = msg.toInt();
+        digitalWrite(LED_BUILTIN, !ledState); // Toggle LED state
+        ledState = !ledState; // Toggle LED state
     }
 
     delay(20);
     if (millis() - ultimaMedicion >= 100) {
         // --- mido rpm ---
         mot1_rpm = (float)((enc1_pulsos * 600 / PULSOS_POR_VUELTA)/9.7);
-        mot2_rpm = (float)((enc2_pulsos * 600 / PULSOS_POR_VUELTA)/9.7);
         enc1_pulsos = 0;
+        mot2_rpm = (float)((enc2_pulsos * 600 / PULSOS_POR_VUELTA)/9.7);
         enc2_pulsos = 0;
 
         // --- PID discreto recursivo ---
-        //float c0 = control_pid(setpoint, mot1_rpm);
-        //int pwm = map(abs(c0), 0, 5000, 0, 100); // PWM de 0 a 255
+        float c0 = control_pid(setpoint, mot1_rpm);
     
-        int c = valor(mot1_rpm, setpoint);
-        vel1 = abs(c); // Set velocity as the absolute value of c
+        int pwm = abs(c0);
 
-        if (c > 0) {
+        if (c0 > 0) {
             dir1 = 1; // Forward direction
-        } else if (c < 0) {
+        } else if (c0 < 0) {
             dir1 = -1; // Reverse direction
         } else {
             dir1 = 0; // Stop
         }
-        mot1_velocidad(vel1, dir1);
+        mot1_velocidad(pwm, dir1);
         mot1_direccion(dir1);
 
 
-        // mot2_velocidad(vel2, dir2);
-        // mot2_direccion(dir2);
+        mot2_velocidad(vel2, dir2);
+        mot2_direccion(dir2);
 
-        // --- debug por BT ---
+        // // --- debug por BT ---
         Serial.print("c:");
-        Serial.print(c);
+        Serial.print(c0);
         Serial.print(",");
         Serial.print("RPM1:");
         Serial.print(mot1_rpm);
         Serial.print(",");-
         Serial.print("Setpoint1:");
         Serial.println(setpoint);
-       // Serial.printf("rpm1: %.2f rpm2: %.2f \n", mot1_rpm, mot2_rpm);
+       //Serial.printf("%.2f|%.2f\n", mot1_rpm, mot2_rpm);
     }
 }
