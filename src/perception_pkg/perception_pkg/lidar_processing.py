@@ -54,7 +54,7 @@ class Lidar(Node):
         np.nan_to_num(self.polar_samples, copy=False, posinf=13.0)
         self.polar_to_carthesian()
 
-        clusters = self.clustering.fit(self.carthesian_points)
+        clusters = self.clustering.fit(self.carthesian_samples)
         centroids = self.get_centroids(clusters)
         self.publish_centroids(centroids)
 
@@ -62,10 +62,10 @@ class Lidar(Node):
         labels = np.unique(clusters.labels_)
         labels = labels[labels != -1]
 
-        centroids = np.zeros((len(labels), self.carthesian_points.shape[1]))
+        centroids = np.zeros((len(labels), self.carthesian_samples.shape[1]))
 
         for i, label in enumerate(labels):
-            centroids[i] = np.mean(self.carthesian_points[clusters.labels_ == label])
+            centroids[i] = np.mean(self.carthesian_samples[clusters.labels_ == label])
 
         return centroids
 
@@ -114,18 +114,11 @@ class Lidar(Node):
         x = carthesian_points[:, 0]
         y = carthesian_points[:, 1]
         
-        # Calculate radius
         r = np.sqrt(x**2 + y**2)
-        
-        # Calculate theta (angle) - using atan2 and accounting for your coordinate system
-        # Since in your polar_to_carthesian: x = -r*cos(theta), y = r*sin(theta)
-        # We need to use atan2(y, -x) to get back the original theta
         theta = np.arctan2(y, -x)
-        
-        # Ensure theta is in [0, 2π) range
+    
         theta = np.mod(theta, 2*np.pi)
-        
-        # Stack r and theta to create the polar coordinates
+    
         polar_samples = np.column_stack((r, theta))
         
         return polar_samples

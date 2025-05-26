@@ -38,13 +38,6 @@ class Thrusters(Node):
         self.get_logger().info(f"Right:{request.right_speed} rpm headed to direction {request.right_direction}")
 
         self.serial.write(vel_cmd.encode("utf-8"))
-        # self.serial.readline()
-
-        # response.left_rpm = 0
-        # response.right_rpm = 0
-
-        # return response
-        
         response.left_rpm, response.right_rpm = self.get_rpm_feedback()
 
         return response
