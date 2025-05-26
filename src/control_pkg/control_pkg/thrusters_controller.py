@@ -8,7 +8,7 @@ from chungungo_interfaces.srv import VelocityCommand
 from serial import Serial
 import time
 
-DEVICE_NAME = '/ttyCH341USB0'
+DEVICE_NAME = '/ttyUSB0'
 BAUD_RATE = 115200
 
 class Thrusters(Node):
