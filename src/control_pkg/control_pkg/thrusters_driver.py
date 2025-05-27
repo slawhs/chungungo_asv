@@ -32,10 +32,10 @@ class Thrusters(Node):
         self.get_logger().info('Serial port connected')
 
     def vel_command_cb(self, request, response):
-        vel_cmd = f"{request.left_speed},{request.left_direction},{request.right_speed},{request.right_direction}\n"
+        vel_cmd = f"{request.left_velocity},{request.right_velocity}\n"
         self.get_logger().info("==================== VELOCITY COMMAND RECIEVED ====================")
-        self.get_logger().info(f"Left:{request.left_speed} rpm headed to direction {request.left_direction}")
-        self.get_logger().info(f"Right:{request.right_speed} rpm headed to direction {request.right_direction}")
+        self.get_logger().info(f"Left setpoint:{request.left_speed} rpm")
+        self.get_logger().info(f"Right setpoint:{request.right_speed} rpm")
 
         self.serial.write(vel_cmd.encode("utf-8"))
         response.left_rpm, response.right_rpm = self.get_rpm_feedback()
