@@ -17,7 +17,7 @@ RANGE_MAX = 12
 
 # ------ Clustering parameters ------
 EPS = 0.05  #? Distance (meters) between two points to be considered in the same cluster
-CLUSTER_MIN_SAMPLES = 5
+CLUSTER_MIN_SAMPLES = 2
     
 class Lidar(Node): 
     def __init__(self):
@@ -52,6 +52,7 @@ class Lidar(Node):
     def detect_buoys(self, msg):
         self.samples_to_polar(msg)
         np.nan_to_num(self.polar_samples, copy=False, posinf=13.0)
+        self.polar_samples = self.polar_samples[self.polar_samples[:, 0] < 2]  # Filter close objects
         self.polar_to_carthesian()
 
         clusters = self.clustering.fit(self.carthesian_samples)
