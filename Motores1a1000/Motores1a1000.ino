@@ -25,6 +25,7 @@ volatile long enc1_pulsos = 0;
 volatile long enc2_pulsos = 0;
 unsigned long medicionActual = 0;
 unsigned long ultimaMedicion = 0;
+unsigned long ultimaMedicionFeedback = 0;
 float mot1_rpm = 0;
 float mot2_rpm = 0;
 int vel1, dir1, vel2, dir2;
@@ -34,13 +35,37 @@ int vel1_map = 0;
 int vel2_map = 0;
 
 
+
 String msg;
 
-// Canal de PWM para ESP32
-// #define MOT1 0
-// #define MOT2 1
-// #define PWM_FREQ 5000
-// #define PWM_RESOLUTION 8
+typedef struct Motores {
+  float rpm_values[4];
+  float rpm_avg;
+};
+
+struct Motores motor1 = {
+  { 0.0, 0.0, 0.0, 0.0 },  // rpm_values
+  0.0                      // rpm_avg
+};
+struct Motores motor2 = {
+  { 0.0, 0.0, 0.0, 0.0 },  // rpm_values
+  0.0                      // rpm_avg
+};
+
+void add_rpm_value(Motores &motor, float new_val) {
+  float sum = 0.0;
+  for (int i = 0; i < 3; i++) {
+    motor.rpm_values[i] = motor.rpm_values[i + 1];
+  }
+  motor.rpm_values[3] = new_val;
+
+  for (int i = 0; i < 4; i++) {
+    sum += motor.rpm_values[i];
+  }
+  motor.rpm_avg = sum / 4.0;
+}
+
+
 #define MIN_VEL 252
 #define MAX_VEL 1
 #define PULSOS_1_VUELTA 320
@@ -87,7 +112,7 @@ int pwmInvertidoConZonaMuerta(int input) {
   const int pwm_max = 252;  // Velocidad mínima (PWM más alto, aún en zona útil)
 
   input = constrain(input, input_min, input_max);
-  
+
   float scale = (float)(input_max - input) / (input_max - input_min);
   return (int)(scale * (pwm_max - pwm_min) + pwm_min);
 }
@@ -99,18 +124,18 @@ void mot1_velocidad(int velocidad, int direccion) {
   //   velocidad = 100;
   // }
   vel1_map = pwmInvertidoConZonaMuerta(velocidad);  // 0 -> 185 and 100 -> 0
-  
+
   analogWrite(mot1_enA, vel1_map);
 
-//   if (vel1_map > MIN_VEL) {
-//     if (direccion != 0) {
-//       analogWrite(mot1_enA, vel1_map);
-//     } else {
-//       analogWrite(mot1_enA, 255);
-//     }
-//   } else {
-//     analogWrite(mot1_enA, 255);
-//   }
+  //   if (vel1_map > MIN_VEL) {
+  //     if (direccion != 0) {
+  //       analogWrite(mot1_enA, vel1_map);
+  //     } else {
+  //       analogWrite(mot1_enA, 255);
+  //     }
+  //   } else {
+  //     analogWrite(mot1_enA, 255);
+  //   }
 }
 
 void mot1_direccion(int dir) {
@@ -248,19 +273,28 @@ void loop() {
   }
 
   delay(0.1);
-  
+
+  /*
+  Podemos cambiar la funcion de Serial.Available() por un while y obtener lo por caracter a caracter
+  Supuestamente asi es mas eficiente y toma menos tiempo la funcion.
+  No es importante ahora mismo.
+  */
+
   medicionActual = millis();
   if (medicionActual - ultimaMedicion >= Ts * 1000) {  // Ts* 1000: Sample time en milisegundos
     // --- mido rpm ---
     float dt = (medicionActual - ultimaMedicion) / 1000.0;  // Tiempo transcurrido en segundos
 
-    float mot1_vueltas = (float) enc1_pulsos / PULSOS_POR_VUELTA;
+    float mot1_vueltas = (float)enc1_pulsos / PULSOS_POR_VUELTA;
     mot1_rpm = (mot1_vueltas * 60.0) / (dt * 5);
     enc1_pulsos = 0;
+    add_rpm_value(motor1, mot1_rpm);  // Añadir el valor actual de RPM al array y calcular el promedio
 
-    float mot2_vueltas = (float) enc2_pulsos / PULSOS_POR_VUELTA;
+
+    float mot2_vueltas = (float)enc2_pulsos / PULSOS_POR_VUELTA;
     mot2_rpm = (mot2_vueltas * 60.0) / dt;
     enc2_pulsos = 0;
+    add_rpm_value(motor2, mot2_rpm);
 
     // --- PID discreto recursivo ---
     // float c1 = control_pid1(mot1_setpoint, mot1_rpm);
@@ -291,35 +325,35 @@ void loop() {
     ultimaMedicion = medicionActual;
     // Serial.println(millis());
   }
-  // // // --- debug por BT ---
 
+  if (medicionActual - ultimaMedicionFeedback >= 100) {  // Enviar feedback cada 100 ms
+    ultimaMedicionFeedback = medicionActual;
+    // Serial.print("vel1_mapeada");
+    // Serial.print(vel1_map);
+    // Serial.print(",");
+    // Serial.print("c1:");
+    // Serial.print(c1);
+    // Serial.print(",");
+    Serial.print("RPM1:");
+    Serial.print(mot1_rpm);
+    Serial.print(",");
+    Serial.print("Setpoint1:");
+    Serial.print(mot1_setpoint);
+    Serial.print(",");
+    Serial.print("Encoder1:");
+    Serial.print(enc1_pulsos);
+    Serial.print(",");
 
-  // Serial.print("vel1_mapeada");
-  // Serial.print(vel1_map);
-  // Serial.print(",");
-  // Serial.print("c1:");
-  // Serial.print(c1);
-  // Serial.print(",");
-  Serial.print("RPM1:");
-  Serial.print(mot1_rpm);
-  Serial.print(",");
-  Serial.print("Setpoint1:");
-  Serial.print(mot1_setpoint);
-  Serial.print(",");
-  Serial.print("Encoder1:");
-  Serial.print(enc1_pulsos);
-  Serial.print(",");
+    // Serial.print("c2:");
+    // Serial.print(c2);
+    // Serial.print(",");
+    Serial.print("RPM2:");
+    Serial.print(mot2_rpm);
+    Serial.print(",");
+    Serial.print("Setpoint2:");
+    Serial.println(mot2_setpoint);
 
-  // Serial.print("c2:");
-  // Serial.print(c2);
-  // Serial.print(",");
-  Serial.print("RPM2:");
-  Serial.print(mot2_rpm);
-  Serial.print(",");
-  Serial.print("Setpoint2:");
-  Serial.println(mot2_setpoint);
-
-  // Feedback para la Raspberry pi 4B
-  // Serial.printf("%.2f|%.2f\n", mot1_rpm, mot2_rpm);
-
+    // Feedback para la Raspberry pi 4B
+    // Serial.printf("%.2f|%.2f\n", mot1_rpm, mot2_rpm);
+  }
 }
