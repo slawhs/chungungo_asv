@@ -10,6 +10,7 @@
 #define mot1_in2 26
 #define enc1_ENCODER_A 22
 #define enc1_ENCODER_B 23
+#define mot1_agua 34
 
 //Motor 2
 #define mot2_enA 32
@@ -17,6 +18,7 @@
 #define mot2_in2 25
 #define enc2_ENCODER_A 19
 #define enc2_ENCODER_B 21
+#define mot2_agua 35
 
 
 #define PULSOS_POR_VUELTA 310
@@ -39,30 +41,33 @@ int vel2_map = 0;
 String msg;
 
 typedef struct Motores {
-  float rpm_values[4];
+  float rpm_values[6];
   float rpm_avg;
+  int agua;
 };
 
 struct Motores motor1 = {
-  { 0.0, 0.0, 0.0, 0.0 },  // rpm_values
-  0.0                      // rpm_avg
+  { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },  // rpm_values
+  0.0,                     // rpm_avg
+  0,                       // Agua
 };
 struct Motores motor2 = {
-  { 0.0, 0.0, 0.0, 0.0 },  // rpm_values
-  0.0                      // rpm_avg
+  { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },  // rpm_values
+  0.0,                     // rpm_avg
+  0                        // Agua
 };
 
 void add_rpm_value(Motores &motor, float new_val) {
   float sum = 0.0;
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 5; i++) {
     motor.rpm_values[i] = motor.rpm_values[i + 1];
   }
-  motor.rpm_values[3] = new_val;
+  motor.rpm_values[5] = new_val;
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 6; i++) {
     sum += motor.rpm_values[i];
   }
-  motor.rpm_avg = sum / 4.0;
+  motor.rpm_avg = sum / 6.0;
 }
 
 
@@ -72,7 +77,7 @@ void add_rpm_value(Motores &motor, float new_val) {
 
 // Variables para PID del primer motor
 const float Ts = 0.01;
-const float Kp1 = 0.01, Ki1 = 0.0, Kd1 = 0.0;  //Kp1 = 1.5 , Ki1 = 0.03, Kd1 = 0.0015;
+float Kp1 = 0.9, Ki1 = 0.5, Kd1 = 0.0;  //Kp1 = 1.5 , Ki1 = 0.03, Kd1 = 0.0015;
 float c1_prev = 0, e1_prev1 = 0, e1_prev2 = 0;
 float mot1_setpoint = 0;
 
@@ -107,35 +112,31 @@ void IRAM_ATTR contarPulsoA2() {
 
 int pwmInvertidoConZonaMuerta(int input) {
   const int input_min = 0;
-  const int input_max = 1000;
-  const int pwm_min = 1;    // Velocidad máxima (PWM más bajo por inversión)
-  const int pwm_max = 252;  // Velocidad mínima (PWM más alto, aún en zona útil)
+  const int input_max = 1050;
+  const int pwm_min = 174;    // Velocidad máxima (PWM más bajo por inversión) NO CAMBIAR!!!!
+  const int pwm_max = 244;  // Velocidad mínima (PWM más alto, aún en zona útil)
 
   input = constrain(input, input_min, input_max);
 
   float scale = (float)(input_max - input) / (input_max - input_min);
-  return (int)(scale * (pwm_max - pwm_min) + pwm_min);
+  int result = (int)(scale * (pwm_max - pwm_min) + pwm_min);
+  Serial.print("Result:");
+  Serial.print(result);
+  Serial.print(",");
+  Serial.print("input:");
+  Serial.print(input);
+  Serial.print(result);
+
+  if (result >= pwm_max){
+    return 255;
+  }
+  return result;
 }
 
 void mot1_velocidad(int velocidad, int direccion) {
-  // if (velocidad < 0) {
-  //   velocidad = 0;
-  // } else if (velocidad > 100) {
-  //   velocidad = 100;
-  // }
   vel1_map = pwmInvertidoConZonaMuerta(velocidad);  // 0 -> 185 and 100 -> 0
 
   analogWrite(mot1_enA, vel1_map);
-
-  //   if (vel1_map > MIN_VEL) {
-  //     if (direccion != 0) {
-  //       analogWrite(mot1_enA, vel1_map);
-  //     } else {
-  //       analogWrite(mot1_enA, 255);
-  //     }
-  //   } else {
-  //     analogWrite(mot1_enA, 255);
-  //   }
 }
 
 void mot1_direccion(int dir) {
@@ -188,24 +189,24 @@ void mot2_direccion(int dir) {
   }
 }
 
-// float control_pid1(float set_point, float mot_rpm) {
-//   // --- PID discreto recursivo ---
-//   float e0 = set_point - mot_rpm;
-//   float a0 = Kp1 + Ki1 * Ts + Kd1 / Ts;
-//   float a1 = -Kp1 - 2.0 * (Kd1 / Ts);
-//   float a2 = Kd1 / Ts;
-//   float c0 = c1_prev + a0 * e0 + a1 * e1_prev1 + a2 * e1_prev2;
-//   e1_prev2 = e1_prev1;
-//   e1_prev1 = e0;
-//   c1_prev = c0;
-//   if (c0 > 100.0) {
-//     c0 = 100.0;
-//   }
-//   if (c0 < -100.0) {
-//     c0 = -100.0;
-//   }
-//   return c0;
-// }
+float control_pid1(float set_point, float mot_rpm) {
+  // --- PID discreto recursivo ---
+  float e0 = set_point - mot_rpm;
+  float a0 = Kp1 + Ki1 * Ts + Kd1 / Ts;
+  float a1 = -Kp1 - 2.0 * (Kd1 / Ts);
+  float a2 = Kd1 / Ts;
+  float c0 = c1_prev + a0 * e0 + a1 * e1_prev1 + a2 * e1_prev2;
+  e1_prev2 = e1_prev1;
+  e1_prev1 = e0;
+  c1_prev = c0;
+  if (c0 > 100.0) {
+    c0 = 100.0;
+  }
+  if (c0 < -100.0) {
+    c0 = -100.0;
+  }
+  return c0;
+}
 
 // float control_pid2(float set_point, float mot_rpm) {
 //   // --- PID discreto recursivo ---
@@ -265,7 +266,7 @@ void setup() {
 void loop() {
   if (Serial.available()) {
     msg = Serial.readStringUntil('\n');
-    sscanf(msg.c_str(), "%f,%f", &mot1_setpoint, &mot2_setpoint);
+    sscanf(msg.c_str(), "%f", &mot1_setpoint);
     // mot1_setpoint = msg.toInt();
     // mot2_setpoint = msg.toInt();
     digitalWrite(LED_BUILTIN, !ledState);  // Toggle LED state
@@ -286,7 +287,7 @@ void loop() {
     float dt = (medicionActual - ultimaMedicion) / 1000.0;  // Tiempo transcurrido en segundos
 
     float mot1_vueltas = (float)enc1_pulsos / PULSOS_POR_VUELTA;
-    mot1_rpm = (mot1_vueltas * 60.0) / (dt * 5);
+    mot1_rpm = (mot1_vueltas * 60.0) / dt;
     enc1_pulsos = 0;
     add_rpm_value(motor1, mot1_rpm);  // Añadir el valor actual de RPM al array y calcular el promedio
 
@@ -297,8 +298,8 @@ void loop() {
     add_rpm_value(motor2, mot2_rpm);
 
     // --- PID discreto recursivo ---
-    // float c1 = control_pid1(mot1_setpoint, mot1_rpm);
-    float c1 = mot1_setpoint;
+    float c1 = control_pid1(mot1_setpoint, motor1.rpm_avg);
+    //float c1 = mot1_setpoint;
     int pwm1 = abs(c1);
     if (c1 > 0) {
       dir1 = 1;  // Forward direction
@@ -320,40 +321,27 @@ void loop() {
     } else {
       dir2 = 0;  // Stop
     }
-    mot2_velocidad(pwm2, dir2);
+    //mot2_velocidad(pwm2, dir2);
     mot2_direccion(dir2);
+
+    motor1.agua = analogRead(mot1_agua);
+    motor2.agua = analogRead(mot2_agua);
     ultimaMedicion = medicionActual;
     // Serial.println(millis());
-  }
 
-  if (medicionActual - ultimaMedicionFeedback >= 100) {  // Enviar feedback cada 100 ms
-    ultimaMedicionFeedback = medicionActual;
-    // Serial.print("vel1_mapeada");
-    // Serial.print(vel1_map);
-    // Serial.print(",");
-    // Serial.print("c1:");
-    // Serial.print(c1);
-    // Serial.print(",");
-    Serial.print("RPM1:");
+        Serial.print("RPM1:");
     Serial.print(mot1_rpm);
+    Serial.print(",");
+    Serial.print("RPM1_avg:");
+    Serial.print(motor1.rpm_avg);
     Serial.print(",");
     Serial.print("Setpoint1:");
     Serial.print(mot1_setpoint);
     Serial.print(",");
+    Serial.print("Agua1:");
+    Serial.print(motor1.agua);
+    Serial.print(",");
     Serial.print("Encoder1:");
-    Serial.print(enc1_pulsos);
-    Serial.print(",");
-
-    // Serial.print("c2:");
-    // Serial.print(c2);
-    // Serial.print(",");
-    Serial.print("RPM2:");
-    Serial.print(mot2_rpm);
-    Serial.print(",");
-    Serial.print("Setpoint2:");
-    Serial.println(mot2_setpoint);
-
-    // Feedback para la Raspberry pi 4B
-    // Serial.printf("%.2f|%.2f\n", mot1_rpm, mot2_rpm);
+    Serial.println(enc1_pulsos);
   }
 }
