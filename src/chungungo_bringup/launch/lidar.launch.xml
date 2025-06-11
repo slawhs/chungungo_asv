@@ -1,6 +1,6 @@
 <launch>
 
     <include file="$(find-pkg-share rplidar_ros)/launch/rplidar.launch.py" />
-    <node pkg="perception_pkg" exec="lidar_processing"/>
+    <node pkg="perception_pkg" exec="lidar"/>
 
 </launch>
