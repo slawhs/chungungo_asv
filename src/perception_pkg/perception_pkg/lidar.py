@@ -30,7 +30,6 @@ class Lidar(Node):
 
         # -------- Publishers and Subscribers --------
         self.laser_sub = self.create_subscription(LaserScan, "/scan", self.lidar_scan_cb, 1)
-        self.laser_pub = self.create_publisher(String, "/object_ahead", 1)
         self.filtered_scan_pub = self.create_publisher(LaserScan, "/filtered_scan", 1)
         self.centroids_pub = self.create_publisher(LaserScan, "/centroids", 1)
         

@@ -89,6 +89,13 @@ class ColorPicker(Node):
             self.get_logger().error(f"CV Bridge error: {e}")
 
 
+    def reset_atributes(self):
+        self.left_clicks = 0
+        self.right_clicks = 0
+        self.red_points = np.zeros((4, 2), dtype=np.int32)
+        self.green_points = np.zeros((4, 2), dtype=np.int32)
+
+
     def get_hsv_range(self, masked_pixels):
         h_min, s_min, v_min = np.min(masked_pixels, axis=0)
         h_max, s_max, v_max = np.max(masked_pixels, axis=0)
@@ -143,7 +150,6 @@ class ColorPicker(Node):
         red_msg.v_high = int(self.upper_red[2])
         
         self.red_pub.publish(red_msg)
-        self.left_clicks = 0
 
         green_msg = HSVColor()
         green_msg.color = 1
@@ -157,7 +163,8 @@ class ColorPicker(Node):
         green_msg.v_high = int(self.upper_green[2])
 
         self.green_pub.publish(green_msg)
-        self.right_clicks = 0
+
+        self.reset_atributes()
 
         self.get_logger().info("Color messages sent")
 
