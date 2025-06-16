@@ -33,9 +33,13 @@ class Thrusters(Node):
 
     def vel_command_cb(self, request, response):
         vel_cmd = f"{request.left_velocity},{request.right_velocity}\n"
-        self.get_logger().info("==================== VELOCITY COMMAND RECIEVED ====================")
-        self.get_logger().info(f"Left setpoint:{request.left_velocity} rpm")
-        self.get_logger().info(f"Right setpoint:{request.right_velocity} rpm")
+        self.get_logger().info(f"""
+                               ==================== VELOCITY COMMAND RECIEVED ====================
+                               Left setpoint:{request.left_velocity} rpm
+                               Right setpoint:{request.right_velocity} rpm
+                               """)
+        # self.get_logger().info(f"Left setpoint:{request.left_velocity} rpm")
+        # self.get_logger().info(f"Right setpoint:{request.right_velocity} rpm")
 
         self.serial.write(vel_cmd.encode("utf-8"))
         response.left_rpm, response.right_rpm = self.get_rpm_feedback()
