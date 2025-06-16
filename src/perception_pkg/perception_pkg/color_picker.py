@@ -89,20 +89,11 @@ class ColorPicker(Node):
             self.get_logger().error(f"CV Bridge error: {e}")
 
 
-    def mouse_cb(self, event, x, y, flags, param):
-
-        hsv_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
-        if event == cv2.EVENT_LBUTTONDOWN and self.left_clicks:
-            self.red_hsv = hsv_frame[y,x]
-            print(f"RED HSV = {self.red_hsv}")
-
-        if event == cv2.EVENT_RBUTTONDOWN:
-            self.green_hsv = hsv_frame[y,x]
-            print(f"GREEN HSV = {self.green_hsv}")
-    
-        if (self.red_hsv.all() != None) and (self.green_hsv.all() != None):
-            self.send_color_msgs()
-            exit()
+    def reset_atributes(self):
+        self.left_clicks = 0
+        self.right_clicks = 0
+        self.red_points = np.zeros((4, 2), dtype=np.int32)
+        self.green_points = np.zeros((4, 2), dtype=np.int32)
 
 
     def get_hsv_range(self, masked_pixels):
@@ -159,7 +150,6 @@ class ColorPicker(Node):
         red_msg.v_high = int(self.upper_red[2])
         
         self.red_pub.publish(red_msg)
-        self.left_clicks = 0
 
         green_msg = HSVColor()
         green_msg.color = 1
@@ -173,7 +163,8 @@ class ColorPicker(Node):
         green_msg.v_high = int(self.upper_green[2])
 
         self.green_pub.publish(green_msg)
-        self.right_clicks = 0
+
+        self.reset_atributes()
 
         self.get_logger().info("Color messages sent")
 

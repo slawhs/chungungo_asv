@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="perception_pkg" exec="camera" />
+    <node pkg="perception_pkg" exec="color_picker" />
+
+</launch>

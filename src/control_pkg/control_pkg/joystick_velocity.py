@@ -20,8 +20,8 @@ class JoystickVelocity(Node):
         # -------- Setup Routines --------
 
     def joy_cb(self, joy_msg):
-        self.vector3_msg.x = joy_msg.axes[1] * 100.0
-        self.vector3_msg.y = joy_msg.axes[3] * 100.0
+        self.vector3_msg.x = joy_msg.axes[1] * 1050.0
+        self.vector3_msg.y = joy_msg.axes[3] * 1050.0
         self.vector3_msg.z = 0.0
         
         # Publish the converted values

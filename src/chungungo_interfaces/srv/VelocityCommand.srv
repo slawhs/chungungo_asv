@@ -1,7 +1,5 @@
-int8 left_direction
-int64 left_speed
-int8 right_direction
-int64 right_speed
+float32 left_velocity
+float32 right_velocity
 ---
 int32 left_rpm
 int32 right_rpm

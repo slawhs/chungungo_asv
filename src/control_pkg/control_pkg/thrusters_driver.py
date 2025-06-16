@@ -8,7 +8,7 @@ from chungungo_interfaces.srv import VelocityCommand
 from serial import Serial
 import time
 
-DEVICE_NAME = '/ttyUSB0'
+DEVICE_NAME = '/ttyCH341USB0'
 BAUD_RATE = 115200
 
 class Thrusters(Node):
@@ -32,19 +32,12 @@ class Thrusters(Node):
         self.get_logger().info('Serial port connected')
 
     def vel_command_cb(self, request, response):
-        vel_cmd = f"{request.left_speed},{request.left_direction},{request.right_speed},{request.right_direction}\n"
+        vel_cmd = f"{request.left_velocity},{request.right_velocity}\n"
         self.get_logger().info("==================== VELOCITY COMMAND RECIEVED ====================")
-        self.get_logger().info(f"Left:{request.left_speed} rpm headed to direction {request.left_direction}")
-        self.get_logger().info(f"Right:{request.right_speed} rpm headed to direction {request.right_direction}")
+        self.get_logger().info(f"Left setpoint:{request.left_velocity} rpm")
+        self.get_logger().info(f"Right setpoint:{request.right_velocity} rpm")
 
         self.serial.write(vel_cmd.encode("utf-8"))
-        # self.serial.readline()
-
-        # response.left_rpm = 0
-        # response.right_rpm = 0
-
-        # return response
-        
         response.left_rpm, response.right_rpm = self.get_rpm_feedback()
 
         return response

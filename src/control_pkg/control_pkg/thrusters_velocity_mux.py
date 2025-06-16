@@ -23,41 +23,19 @@ class ThrustersVelMux(Node):
         self.vel_mux_timer = self.create_timer(timer_period, self.vel_mux_cb)
         self.request = VelocityCommand.Request()
         
-        self.left_speed = 0.0
-        self.left_direction = 0.0
-        self.right_speed = 0.0
-        self.right_direction = 0.0
+        self.joystick_left_vel = 0.0
+        self.joystick_right_vel = 0.0
 
         # -------- Setup Routines --------
 
     def joystick_vel_cb(self, msg):
-
-        # Set speed
-        self.left_speed = int(abs(msg.x))
-        self.right_speed = int(abs(msg.y))
-
-        # Set direction
-        if msg.x > 0:
-            self.left_direction = 1
-        elif msg.x < 0:
-            self.left_direction = -1
-        elif msg.x == 0:
-            self.left_direction = 0
-
-        if msg.y > 0:
-            self.right_direction = 1
-        elif msg.y < 0:
-            self.right_direction = -1
-        elif msg.y == 0:
-            self.right_direction = 0
-
-        
+        self.joystick_left_vel = msg.x
+        self.joystick_right_vel = msg.y
 
     def vel_mux_cb(self):
-        self.request.left_speed = int(self.left_speed)
-        self.request.left_direction = int(self.left_direction)
-        self.request.right_speed = int(self.right_speed)
-        self.request.right_direction = int(self.right_direction)
+        # Joystick velocity
+        self.request.left_velocity = self.joystick_left_vel
+        self.request.right_velocity = self.joystick_right_vel
         self.future = self.vel_cmd_cli.call_async(self.request)
 
         if self.future.done():

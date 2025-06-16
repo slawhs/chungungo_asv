@@ -21,7 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             "joystick_velocity = control_pkg.joystick_velocity:main",
-            "thrusters_controller = control_pkg.thrusters_controller:main",
+            "thrusters_driver = control_pkg.thrusters_driver:main",
             "thrusters_velocity_mux = control_pkg.thrusters_velocity_mux:main"
         ],
     },

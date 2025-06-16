@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="control_pkg" exec="thrusters_driver" />
+    <node pkg="control_pkg" exec="thrusters_velocity_mux" />
+    
+</launch>
