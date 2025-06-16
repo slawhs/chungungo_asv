@@ -23,7 +23,8 @@ setup(
             "lidar_processing = perception_pkg.lidar_processing:main",
             "camera = perception_pkg.camera:main",
             "color_picker = perception_pkg.color_picker:main",
-            "lidar = perception_pkg.lidar:main"
+            "lidar = perception_pkg.lidar:main",
+            "buoy_tracker = perception_pkg.buoy_tracker:main"
         ],
     },
 )

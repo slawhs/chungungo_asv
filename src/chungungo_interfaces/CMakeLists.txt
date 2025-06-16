@@ -16,6 +16,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/HSVColor.msg"
   "srv/VelocityCommand.srv"
+  "msg/Centroid.msg"
+  "msg/CloseBuoysCentroids.msg"
 )
 
 if(BUILD_TESTING)
