@@ -17,6 +17,7 @@
 #define enc2_ENCODER_B 21
 #define mot2_agua 35
 
+#define relay_pin 17
 #define PULSOS_POR_VUELTA 310
 
 volatile long enc1_pulsos = 0;
@@ -27,6 +28,7 @@ unsigned long ultimaMedicionFeedback = 0;
 float mot1_rpm = 0;
 float mot2_rpm = 0;
 bool ledState = false;
+const int water_threshold = 500;
 
 String msg;
 
@@ -106,15 +108,48 @@ void IRAM_ATTR contarPulsoA2() {
 
 void feedbackRPi() {
     // Enviar datos de RPM y setpoint a la Raspberry Pi
-    // Serial.print("Agua1:");
-    // Serial.print(motor1.agua);
-    // Serial.print("RPM1:");
     Serial.print(motor1.rpm_avg);
     Serial.print("|");
-    // Serial.print("Agua2:");
-    // Serial.print(motor2.agua);
-    // Serial.print("RPM2:");
     Serial.println(motor2.rpm_avg);
+}
+
+void feedbackPC() {
+    Serial.print("RPM1:");
+    Serial.print(mot1_rpm);
+    Serial.print(",");
+    Serial.print("RPM1_avg:");
+    Serial.print(motor1.rpm_avg);
+    Serial.print(",");
+    Serial.print("Agua1:");
+    Serial.print(motor1.agua);
+    Serial.print(",");
+    Serial.print("Setpoint1:");
+    Serial.print(motor1.setpoint);
+
+    Serial.print(",");
+    Serial.print("RPM2:");
+    Serial.print(mot2_rpm);
+    Serial.print(",");
+    Serial.print("RPM2_avg:");
+    Serial.print(motor2.rpm_avg);
+    Serial.print(",");
+    Serial.print("Agua2:");
+    Serial.print(motor2.agua);
+    Serial.print(",");
+    Serial.print("Setpoint2:");
+    Serial.println(motor2.setpoint);
+}
+
+void ComprobarAgua() {
+    motor1.agua = analogRead(mot1_agua);
+    motor2.agua = analogRead(mot2_agua);
+
+    if (motor1.agua > water_threshold) {
+        digitalWrite(relay_pin, HIGH);
+    }
+    if (motor2.agua > water_threshold) {
+        digitalWrite(relay_pin, HIGH);
+    }
 }
 
 int pwmInvertidoConZonaMuerta(int input) {
@@ -127,15 +162,11 @@ int pwmInvertidoConZonaMuerta(int input) {
 
     float scale = (float)(input_max - input) / (input_max - input_min);
     int result = (int)(scale * (pwm_max - pwm_min) + pwm_min);
-    // Serial.print("Result:");
-    // Serial.print(result);
-    // Serial.print(",");
-
 
     if (result >= pwm_max) {
         return 255;
     }
-    if (result < 174){
+    if (result < 174) {
         return 174;
     }
     return result;
@@ -205,6 +236,8 @@ void setup() {
     pinMode(enc2_ENCODER_A, INPUT_PULLUP);
     pinMode(enc2_ENCODER_B, INPUT_PULLUP);
 
+    //pinMode(relay_pin, OUTPUT);
+
     // Inicializar PWM
     attachInterrupt(enc1_ENCODER_A, contarPulsoA1, RISING);
     attachInterrupt(enc2_ENCODER_A, contarPulsoA2, RISING);
@@ -223,8 +256,6 @@ void loop() {
     if (Serial.available()) {
         msg = Serial.readStringUntil('\n');
         sscanf(msg.c_str(), "%f,%f", &motor1.setpoint, &motor2.setpoint);
-        // mot1_setpoint = msg.toInt();
-        // mot2_setpoint = msg.toInt();
         digitalWrite(LED_BUILTIN, !ledState);  // Toggle LED state
         ledState = !ledState;                  // Toggle LED state
     }
@@ -246,6 +277,8 @@ void loop() {
         mot1_rpm = (mot1_vueltas * 60.0) / dt;
         float mot2_vueltas = (float)enc2_pulsos / PULSOS_POR_VUELTA;
         mot2_rpm = (mot2_vueltas * 60.0) / dt;
+        // mot1_rpm += 0.1;
+        // mot2_rpm += 0.1;
         enc2_pulsos = 0;
         enc1_pulsos = 0;
         interrupts();
@@ -253,43 +286,24 @@ void loop() {
         add_rpm_value(motor2, mot2_rpm);
 
         // --- PID discreto recursivo ---
-        float c1 = control_pid(motor1);
-        //float c1 = motor1.setpoint;
+        // float c1 = control_pid(motor1);
+        float c1 = motor1.setpoint;
         int pwm1 = abs(c1);
         mot1_velocidad(pwm1);
         mot1_direccion(c1);
 
-        float c2 = control_pid(motor2);
-        // float c2 = motor2.setpoint;
+        // float c2 = control_pid(motor2);
+        float c2 = motor2.setpoint;
         int pwm2 = abs(c2);
         mot2_velocidad(pwm2);
         mot2_direccion(c2);
 
         /* LECTURA SENSOR AGUA*/
-        motor1.agua = analogRead(mot1_agua);
-        motor2.agua = analogRead(mot2_agua);
+        //ComprobarAgua();
         ultimaMedicion = medicionActual;
 
         /* FEEDBACK */
-        // Serial.print("RPM1:");
-        // Serial.print(mot1_rpm);
-        // Serial.print(",");
-        // Serial.print("RPM1_avg:");
-        // Serial.print(motor1.rpm_avg);
-        // Serial.print(",");
-        // Serial.print("Setpoint1:");
-        // Serial.print(motor1.setpoint);
-
-        // Serial.print(",");
-        // Serial.print("RPM2:");
-        // Serial.print(mot2_rpm);
-        // Serial.print(",");
-        // Serial.print("RPM2_avg:");
-        // Serial.print(motor2.rpm_avg);
-        // Serial.print(",");
-        // Serial.print("Setpoint2:");
-        // Serial.println(motor2.setpoint);
-
+        //feedbackPC();
         feedbackRPi();
     }
 }
