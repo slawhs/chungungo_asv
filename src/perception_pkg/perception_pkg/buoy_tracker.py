@@ -8,22 +8,8 @@ from sklearn.cluster import DBSCAN, OPTICS
 
 import numpy as np
 
-# ------ LiDAR Parameters ------
-TIME_INCREMENT = 0.00011
-ANGLE_INCREMENT = 0.008714509196579456  #? radians
-ANGLE_MIN = -3.1241390705108643
-ANGLE_MAX = 3.1415927410125732
-RANGE_MIN = 0.15
-RANGE_MAX = 12.0
-N_SAMPLES = 720
+BUOY_RADIUS = 0.15
 
-# ------ Clustering parameters ------
-EPS = 0.06  #? Distance (meters) between two points to be considered in the same cluster
-CLUSTER_MIN_SAMPLES = 15
-
-MIN_DIST_FILTER = 0.3
-MAX_DIST_FILTER = 2.0
-    
 class BuoyTracker(Node): 
     def __init__(self):
         super().__init__("BuoyTracker")
@@ -31,13 +17,20 @@ class BuoyTracker(Node):
         # -------- Publishers and Subscribers --------
         self.centroids_pub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
         # -------- Atributes --------
-        self.centroids_position = None
+        self.centroid_1 = None
+        self.centroid_2 = None
+        
+        timer_period = 0.1 
+        self.timer = self.create_timer(timer_period, self.detect_cb)
 
     def centroids_cb(self, msg):
-        centroid_1 = msg.centroid_1
-        centroid_2 = msg.centroid_2
-        self.get_logger().info(f"RECIEVED CENTROIDS\nCentroid 1: [{centroid_1.range}, {centroid_1.theta}]\nCentroid 2: [{centroid_2.range}, {centroid_2.range}]")
-        pass
+        self.centroid_1 = msg.centroid_1
+        self.centroid_2 = msg.centroid_2
+
+
+    def detect_cb(self):
+        
+
 
 def main(args=None):
     rclpy.init(args=args)
