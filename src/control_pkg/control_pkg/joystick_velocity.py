@@ -25,6 +25,7 @@ class JoystickVelocity(Node):
         self.vector3_msg.z = 0.0
         
         # Publish the converted values
+        print("sent joystick message")
         self.vel_pub.publish(self.vector3_msg)
 
         

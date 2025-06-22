@@ -45,7 +45,7 @@ class Thrusters(Node):
         rpm_esp = self.serial.read_until(b'\r')
         rpm_feedback = str(rpm_esp, encoding='utf-8')
         # rpm_feedback = self.serial.readline().decode('utf-8', errors='replace')
-        self.get_logger().info(rpm_feedback)
+        # self.get_logger().info(rpm_feedback)
         # self.get_logger().info("Feedback recieved")
 
         left_rpm, right_rpm = rpm_feedback.strip().split("|")
