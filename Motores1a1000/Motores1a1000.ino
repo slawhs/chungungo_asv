@@ -235,8 +235,8 @@ void setup() {
     pinMode(mot2_in2, OUTPUT);
     pinMode(enc2_ENCODER_A, INPUT_PULLUP);
     pinMode(enc2_ENCODER_B, INPUT_PULLUP);
+    pinMode(relay_pin, OUTPUT);
 
-    //pinMode(relay_pin, OUTPUT);
 
     // Inicializar PWM
     attachInterrupt(enc1_ENCODER_A, contarPulsoA1, RISING);
@@ -247,7 +247,7 @@ void setup() {
 
     digitalWrite(mot2_in1, LOW);
     digitalWrite(mot2_in2, HIGH);
-
+    digitalWrite(relay_pin, LOW);
     Serial.begin(115200);
     ultimaMedicion = millis();
 }
