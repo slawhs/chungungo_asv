@@ -3,10 +3,10 @@
 
 // Motor 1
 #define mot1_enA 27
-#define mot1_in1 14
-#define mot1_in2 26
-#define enc1_ENCODER_A 22
-#define enc1_ENCODER_B 23
+#define mot1_in1 26
+#define mot1_in2 14
+#define enc1_ENCODER_A 23
+#define enc1_ENCODER_B 22
 #define mot1_agua 34
 
 // Motor 2
@@ -49,8 +49,8 @@ struct Motores motor1 = {
     { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },  // rpm_values
     0.0,                               // rpm_avg
     0,                                 // Agua
-    1.0,                               // Kp
-    0.0,                               // Ki
+    1.7,                               // Kp
+    0.4,                               // Ki
     0.0,                               // Kd
     0.0,                               // setpoint
     0.0,                               // e_prev1
@@ -114,8 +114,8 @@ void feedbackRPi() {
 }
 
 void feedbackPC() {
-    Serial.print("RPM1:");
-    Serial.print(mot1_rpm);
+    Serial.print("c0_1:");
+    Serial.print(motor1.c_prev);
     Serial.print(",");
     Serial.print("RPM1_avg:");
     Serial.print(motor1.rpm_avg);
@@ -127,8 +127,8 @@ void feedbackPC() {
     Serial.print(motor1.setpoint);
 
     Serial.print(",");
-    Serial.print("RPM2:");
-    Serial.print(mot2_rpm);
+    Serial.print("c0_2:");
+    Serial.print(motor2.c_prev);
     Serial.print(",");
     Serial.print("RPM2_avg:");
     Serial.print(motor2.rpm_avg);
@@ -215,6 +215,9 @@ float control_pid(Motores &motor) {
     float a1 = -motor.Kp - 2.0 * (motor.Kd / Ts);
     float a2 = motor.Kd / Ts;
     float c0 = motor.c_prev + a0 * e0 + a1 * motor.e_prev1 + a2 * motor.e_prev2;
+    if ( c0 < 15.0  && c0 > -15.0){
+        c0 = 0.0;
+    }
     motor.e_prev2 = motor.e_prev1;
     motor.e_prev1 = e0;
     motor.c_prev = c0;
@@ -292,7 +295,7 @@ void loop() {
         mot1_velocidad(pwm1);
         mot1_direccion(c1);
 
-        // float c2 = control_pid(motor2);
+        //float c2 = control_pid(motor2);
         float c2 = motor2.setpoint;
         int pwm2 = abs(c2);
         mot2_velocidad(pwm2);
