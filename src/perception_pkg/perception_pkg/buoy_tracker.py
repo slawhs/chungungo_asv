@@ -19,6 +19,9 @@ class BuoyTracker(Node):
         # -------- Atributes --------
         self.centroid_1 = None
         self.centroid_2 = None
+
+        self.centroid_1_distance = 12.0
+        self.centroid_2_distance = 12.0
         
         timer_period = 0.1 
         self.timer = self.create_timer(timer_period, self.detect_cb)
@@ -27,9 +30,11 @@ class BuoyTracker(Node):
         self.centroid_1 = msg.centroid_1
         self.centroid_2 = msg.centroid_2
 
-
     def detect_cb(self):
-        
+        if self.centroid_1 is not None:
+            self.get_logger().info(f"Closest buoy is at {self.centroid_1.range:.3f} meters")
+        if self.centroid_2 is not None:    
+            self.get_logger().info(f"Second closest buoy is at {self.centroid_2.range:.3f} meters")
 
 
 def main(args=None):
