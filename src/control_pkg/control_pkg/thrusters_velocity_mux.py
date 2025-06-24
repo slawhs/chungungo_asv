@@ -3,7 +3,8 @@
 import rclpy
 from rclpy.node import Node
 
-from chungungo_interfaces.srv import VelocityCommand, ThrustersVelocity
+from chungungo_interfaces.srv import VelocityCommand
+from chungungo_interfaces.msg import ThrustersVelocity
 from geometry_msgs.msg import Vector3  #? Do custom interface for joystick_speed
 
 class ThrustersVelMux(Node):

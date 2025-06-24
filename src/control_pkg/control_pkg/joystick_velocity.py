@@ -6,7 +6,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Vector3
 
-from chungungo_interfaces import ThrustersVelocity
+from chungungo_interfaces.msg import ThrustersVelocity
 
 class JoystickVelocity(Node):
     def __init__(self):
