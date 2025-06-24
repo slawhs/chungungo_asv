@@ -3,8 +3,6 @@
 import rclpy
 from rclpy.node import Node
 from chungungo_interfaces.msg import CloseBuoysCentroids 
-from std_msgs.msg import String
-from sklearn.cluster import DBSCAN, OPTICS
 
 import numpy as np
 
