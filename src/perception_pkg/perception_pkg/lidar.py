@@ -117,22 +117,27 @@ class Lidar(Node):
         sizes = np.bincount(labels[valid_mask])
         keep = np.where((0 < sizes) & (sizes <= CLUSTER_MAX_SAMPLES))[0]
 
-        if keep.sizes == 0:
+        if keep.size == 0:
             self.get_logger().info(f"All clusters exceed samples cap = {CLUSTER_MAX_SAMPLES}")
             return np.empty((0, 2), dtype=float)
 
+
+        centroids_all = np.vstack([self.cartesian_samples[labels == l].mean(axis=0) for l in keep])
         ranked = keep[np.argsort(sizes[keep])[::-1]]           # labels in descending size
-        top_labels = ranked[:k]
+        
+        # distance of each centroid from the sensor
+        dists = np.linalg.norm(centroids_all, axis=1)
 
-        # ---- logging ---------------------------------------------------------
-        cluster_sizes = [(int(l), int(sizes[l])) for l in top_labels]
-        self.get_logger().info(f"Cluster sizes kept: {cluster_sizes}")
+        # order by smallest distance (nearest objects first)
+        order = np.argsort(dists)
+        top_idx   = order[:k]            # indices within 'keep' / 'centroids_all'
+        top_labels = keep[top_idx]
+        centroids  = centroids_all[top_idx]
+        
 
-        # ---- centroids -------------------------------------------------------
-        centroids = np.vstack([
-            self.cartesian_samples[labels == l].mean(axis=0)
-            for l in top_labels
-        ])
+        # ----- logging -------------------------------------------------------
+        cluster_info = [(int(lbl), int(sizes[lbl]), float(dists[i])) for i, lbl in enumerate(top_labels)]
+        self.get_logger().info(f"Clusters kept (label, size, range): {cluster_info}")
 
         return centroids
 
