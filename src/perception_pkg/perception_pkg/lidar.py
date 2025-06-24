@@ -19,11 +19,11 @@ RANGE_MAX = 12.0
 N_SAMPLES = 720
 
 # ------ Clustering parameters ------
-EPS = 0.06  #? Distance (meters) between two points to be considered in the same cluster
-CLUSTER_MIN_SAMPLES = 15
+EPS = 0.01  #? Distance (meters) between two points to be considered in the same cluster
+CLUSTER_MIN_SAMPLES = 4
 
 MIN_DIST_FILTER = 0.3
-MAX_DIST_FILTER = 2.0
+MAX_DIST_FILTER = 1.5
     
 class Lidar(Node): 
     def __init__(self):
@@ -156,11 +156,12 @@ class Lidar(Node):
         else:
             self.get_logger().error("WRONG TOPIC")
 
-    def publish_centroids(self, centroids): 
-        msg = CloseBuoysCentroids()
-        msg.centroid_1.range, msg.centroid_1.theta = float(centroids[0][0]), float(centroids[0][1])
-        msg.centroid_2.range, msg.centroid_2.theta = float(centroids[1][0]), float(centroids[1][0])
-        self.centroids_pub.publish(msg)
+    def publish_centroids(self, centroids):
+        if not centroids.any():
+            msg = CloseBuoysCentroids()
+            msg.centroid_1.range, msg.centroid_1.theta = float(centroids[0][0]), float(centroids[0][1])
+            msg.centroid_2.range, msg.centroid_2.theta = float(centroids[1][0]), float(centroids[1][0])
+            self.centroids_pub.publish(msg)
 
 
 
