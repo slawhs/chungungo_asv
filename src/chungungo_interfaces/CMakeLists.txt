@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/VelocityCommand.srv"
   "msg/Centroid.msg"
   "msg/CloseBuoysCentroids.msg"
+  "msg/ThrustersVelocity.msg"
 )
 
 if(BUILD_TESTING)
