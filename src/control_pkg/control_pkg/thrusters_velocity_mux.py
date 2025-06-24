@@ -3,7 +3,7 @@
 import rclpy
 from rclpy.node import Node
 
-from chungungo_interfaces.srv import VelocityCommand
+from chungungo_interfaces.srv import VelocityCommand, ThrustersVelocity
 from geometry_msgs.msg import Vector3  #? Do custom interface for joystick_speed
 
 class ThrustersVelMux(Node):
@@ -12,7 +12,8 @@ class ThrustersVelMux(Node):
 
         # -------- Publishers, Subscribers and Services --------
         #* crear subscriber de nodos de teleop, control de boyas, control de distancias. 
-        self.joystick_vel_sub = self.create_subscription(Vector3, '/joystick_velocity', self.joystick_vel_cb, 10)
+        self.joystick_vel_sub = self.create_subscription(ThrustersVelocity, '/joystick_velocity', self.joystick_vel_cb, 10)
+        self.buoy_distance_vel_sub = self.create_subscription()
 
         self.vel_cmd_cli = self.create_client(VelocityCommand, '/vel_command')
         while not self.vel_cmd_cli.wait_for_service(timeout_sec=0.5):
@@ -29,8 +30,8 @@ class ThrustersVelMux(Node):
         # -------- Setup Routines --------
 
     def joystick_vel_cb(self, msg):
-        self.joystick_left_vel = msg.x
-        self.joystick_right_vel = msg.y
+        self.joystick_left_vel = msg.left_velocity
+        self.joystick_right_vel = msg.right_velocity
 
     def vel_mux_cb(self):
         # Joystick velocity
