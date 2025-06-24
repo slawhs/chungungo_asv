@@ -3,4 +3,4 @@
 	url = https://github.com/babakhani/rplidar_ros2
 [submodule "src/bno055"]
 	path = src/bno055
-	url = https://github.com/flynneva/bno055.git
+	url = https://github.com/flynneva/bno055
