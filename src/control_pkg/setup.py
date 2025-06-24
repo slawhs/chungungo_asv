@@ -22,7 +22,9 @@ setup(
         'console_scripts': [
             "joystick_velocity = control_pkg.joystick_velocity:main",
             "thrusters_driver = control_pkg.thrusters_driver:main",
-            "thrusters_velocity_mux = control_pkg.thrusters_velocity_mux:main"
+            "thrusters_velocity_mux = control_pkg.thrusters_velocity_mux:main",
+            "action_processing = control_pkg.action_processing:main",
+            "buoy_avoidance = control_pkg.buoy_avoidance:main"
         ],
     },
 )
