@@ -21,7 +21,7 @@ N_SAMPLES = 720
 # ------ Clustering parameters ------
 EPS = 0.01  #? Distance (meters) between two points to be considered in the same cluster
 CLUSTER_MIN_SAMPLES = 4
-
+CLUSTER_MAX_SAMPLES = 15
 MIN_DIST_FILTER = 0.3
 MAX_DIST_FILTER = 1.5
     
@@ -115,12 +115,18 @@ class Lidar(Node):
 
         # ---- cluster sizes ---------------------------------------------------
         sizes = np.bincount(labels[valid_mask])
-        ranked = np.argsort(sizes)[::-1]           # labels in descending size
-        top_labels = ranked[:k][sizes[ranked[:k]] > 0]
+        keep = np.where((0 < sizes) & (sizes <= CLUSTER_MAX_SAMPLES))[0]
+
+        if keep.sizes == 0:
+            self.get_logger().info(f"All clusters exceed samples cap = {CLUSTER_MAX_SAMPLES}")
+            return np.empty((0, 2), dtype=float)
+
+        ranked = keep[np.argsort(sizes[keep])[::-1]]           # labels in descending size
+        top_labels = ranked[:k]
 
         # ---- logging ---------------------------------------------------------
         cluster_sizes = [(int(l), int(sizes[l])) for l in top_labels]
-        self.get_logger().info(f"Cluster sizes (largest first): {cluster_sizes}")
+        self.get_logger().info(f"Cluster sizes kept: {cluster_sizes}")
 
         # ---- centroids -------------------------------------------------------
         centroids = np.vstack([
