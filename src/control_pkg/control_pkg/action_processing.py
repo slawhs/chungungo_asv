@@ -14,7 +14,7 @@ class ActionProcessing(Node):
         super().__init__("ActionProcessing")
 
         # -------- Publishers and Subscribers --------
-        self.mode_pub = self.create_publisher(String, "/operation_pub", 1)
+        self.mode_pub = self.create_publisher(String, "/operation_mode", 1)
         self.mode = "standby"
 
         # -------- Atributes --------
@@ -22,9 +22,10 @@ class ActionProcessing(Node):
         self.timer = self.create_timer(timer_period, self.mode_cb)
 
     def mode_cb(self):
-        self.mode = input("introduce mode (standby/joystick/buoy)")
+        self.mode = input("Introduce Operation Mode (standby/joystick/buoy): ")
         mode_msg = String()
         mode_msg.data = self.mode
+        self.get_logger().info(f"Sent Mode: {self.mode}")
         self.mode_pub.publish(mode_msg)
 
 

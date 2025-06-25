@@ -20,10 +20,10 @@ N_SAMPLES = 720
 
 # ------ Clustering parameters ------
 EPS = 0.01  #? Distance (meters) between two points to be considered in the same cluster
-CLUSTER_MIN_SAMPLES = 8
-CLUSTER_MAX_SAMPLES = 9
+CLUSTER_MIN_SAMPLES = 6
+CLUSTER_MAX_SAMPLES = 30
 MIN_DIST_FILTER = 0.3
-MAX_DIST_FILTER = 1.2
+MAX_DIST_FILTER = 0.8
     
 class Lidar(Node): 
     def __init__(self):
@@ -51,7 +51,9 @@ class Lidar(Node):
         self.cartesian_samples = self.polar_to_cartesian(self.filtered_polar_samples)
         # print(f"\nCarthesian Samples\n{self.cartesian_samples}")
         
-        if self.cartesian_samples.shape[0] != 0:  # if there is something to cluster   
+        
+        n_pts = self.cartesian_samples.shape[0]
+        if n_pts >= CLUSTER_MIN_SAMPLES:  # if there is something to cluster   
             print("Clustering...")
             clusters = self.clustering.fit(self.cartesian_samples)
             centroids = self.get_centroids(clusters)
@@ -60,6 +62,9 @@ class Lidar(Node):
             self.publish_centroids(polar_centroids)
             # print(f"Polar Centroids:\n{polar_centroids}")
             self.publish_samples_laserscan(polar_centroids, topic="centroids_laserscan")
+
+        else:
+            self.get_logger().debug(f"Only {n_pts} pts < min_samples={CLUSTER_MIN_SAMPLES} – skip clustering")
 
     def samples_to_polar(self, ranges):
         ranges = np.asarray(ranges, dtype=np.float32)
@@ -76,7 +81,7 @@ class Lidar(Node):
         front_samples = np.vstack((raw_samples[leftmost_angle:], raw_samples[:rightmost_angle+1]))
         
         #? Filter samples by distance
-        distance_mask = front_samples[:, 0] < 3.0
+        distance_mask = ((front_samples[:, 0] >= MIN_DIST_FILTER) & (front_samples[:, 0] <= MAX_DIST_FILTER))
         
         filtered_samples = front_samples[distance_mask]
 
@@ -137,7 +142,7 @@ class Lidar(Node):
 
         # ----- logging -------------------------------------------------------
         cluster_info = [(int(lbl), int(sizes[lbl]), float(dists[i])) for i, lbl in enumerate(top_labels)]
-        self.get_logger().info(f"Clusters kept (label, size, range): {cluster_info}")
+        # self.get_logger().info(f"Clusters kept (label, size, range): {cluster_info}")
 
         return centroids
 
@@ -182,11 +187,7 @@ class Lidar(Node):
         if centroids.shape[0] > 1:
             msg.centroid_2.range = float(centroids[1, 0])
             msg.centroid_2.theta = float(centroids[1, 1])
-        else:
-            # puedes dejar 0.0 o usar NaN para indicar “no disponible”
-            msg.centroid_2.range = float("nan")
-            msg.centroid_2.theta = float("nan")
-
+ 
         self.centroids_pub.publish(msg)
 
 

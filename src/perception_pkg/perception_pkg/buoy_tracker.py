@@ -14,7 +14,7 @@ class BuoyTracker(Node):
         super().__init__("BuoyTracker")
 
         # -------- Publishers and Subscribers --------
-        self.detect_pub = self.create_publisher(Bool, "/detect_order", self.detect_cb, 10)
+        self.detect_pub = self.create_publisher(Bool, "/detect_order", 10)
 
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
         self.color_sub = self.create_subscription(String, "/color_detection", self.color_cb, 10)
@@ -36,6 +36,7 @@ class BuoyTracker(Node):
         self.get_logger().info(f"{self.detected_color} buoy at {self.centroid_1.range:.3f} meters")
 
     def centroids_cb(self, msg):
+        # self.get_logger().info(f"updated position of centroid. Range: {msg.centroid_1.range}")
         self.centroid_1 = msg.centroid_1
         self.centroid_2 = msg.centroid_2
 

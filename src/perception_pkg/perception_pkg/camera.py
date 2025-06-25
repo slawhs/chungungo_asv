@@ -3,7 +3,8 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String, Bool
+from std_msgs.msg import String
+from std_msgs.msg import Bool
 from sensor_msgs.msg import Image
 from chungungo_interfaces.msg import HSVColor
 
@@ -11,7 +12,7 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-N_CAM = 1
+N_CAM = 2
 BUOY_AREA_TH = 10
 
 
@@ -40,15 +41,15 @@ class Camera(Node):
         self.detect = False
         self.detected_color = ""
 
-        self.green_area = ""
-        self.red_area = ""
+        self.green_area = 0.0
+        self.red_area = 0.0
 
         # -------- Setup Routines --------
         self.setup_camera()
 
 
     def setup_camera(self):
-        self.cap = cv2.VideoCapture(N_CAM, cv2.CAP_V4L)
+        self.cap = cv2.VideoCapture(N_CAM, cv2.CAP_V4L2)
         self.bridge = CvBridge()
         self.cap.read()
 
@@ -141,8 +142,8 @@ class Camera(Node):
 
     def publish_color(self, color):
         color_msg = String()
-        color_msg.data = color 
-        self.color_pub.publish(f"{color_msg}")
+        color_msg.data = color
+        self.color_pub.publish(color_msg)
 
 
 def main(args=None):
