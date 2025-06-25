@@ -20,10 +20,10 @@ N_SAMPLES = 720
 
 # ------ Clustering parameters ------
 EPS = 0.01  #? Distance (meters) between two points to be considered in the same cluster
-CLUSTER_MIN_SAMPLES = 4
-CLUSTER_MAX_SAMPLES = 15
+CLUSTER_MIN_SAMPLES = 8
+CLUSTER_MAX_SAMPLES = 9
 MIN_DIST_FILTER = 0.3
-MAX_DIST_FILTER = 1.5
+MAX_DIST_FILTER = 1.2
     
 class Lidar(Node): 
     def __init__(self):
@@ -123,7 +123,7 @@ class Lidar(Node):
 
 
         centroids_all = np.vstack([self.cartesian_samples[labels == l].mean(axis=0) for l in keep])
-        ranked = keep[np.argsort(sizes[keep])[::-1]]           # labels in descending size
+        # ranked = keep[np.argsort(sizes[keep])[::-1]]           # labels in descending size
         
         # distance of each centroid from the sensor
         dists = np.linalg.norm(centroids_all, axis=1)
@@ -168,11 +168,26 @@ class Lidar(Node):
             self.get_logger().error("WRONG TOPIC")
 
     def publish_centroids(self, centroids):
-        if not centroids.any():
-            msg = CloseBuoysCentroids()
-            msg.centroid_1.range, msg.centroid_1.theta = float(centroids[0][0]), float(centroids[0][1])
-            msg.centroid_2.range, msg.centroid_2.theta = float(centroids[1][0]), float(centroids[1][0])
-            self.centroids_pub.publish(msg)
+        if centroids.size == 0:
+            self.get_logger().debug("No centroids - nothing to publish.")
+            return                                    #  <-- salir sin publicar
+
+        msg = CloseBuoysCentroids()
+
+        # 1) primer centroide (existe siempre que size > 0)
+        msg.centroid_1.range = float(centroids[0, 0])
+        msg.centroid_1.theta = float(centroids[0, 1])
+
+        # 2) segundo centroide, sólo si hay ≥ 2
+        if centroids.shape[0] > 1:
+            msg.centroid_2.range = float(centroids[1, 0])
+            msg.centroid_2.theta = float(centroids[1, 1])
+        else:
+            # puedes dejar 0.0 o usar NaN para indicar “no disponible”
+            msg.centroid_2.range = float("nan")
+            msg.centroid_2.theta = float("nan")
+
+        self.centroids_pub.publish(msg)
 
 
 

@@ -3,6 +3,7 @@
 import rclpy
 from rclpy.node import Node
 
+from std_msgs.msg import String, Bool
 from sensor_msgs.msg import Image
 from chungungo_interfaces.msg import HSVColor
 
@@ -10,7 +11,7 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-N_CAM = 0
+N_CAM = 1
 BUOY_AREA_TH = 10
 
 
@@ -20,6 +21,9 @@ class Camera(Node):
 
         # -------- Publishers and Subscribers --------
         self.image_pub = self.create_publisher(Image, "/camera", 10)
+        self.color_pub = self.create_publisher(String, "/color_detection", 10)
+
+        self.detect_sub = self.create_subscription(Bool, "/detect_order", self.detect_cb, 10)
         self.red_hsv_sub = self.create_subscription(HSVColor, "/color_picker/red", self.update_thresholds_cb, 1)
         self.green_hsv_sub = self.create_subscription(HSVColor, "/color_picker/green", self.update_thresholds_cb, 1)
 
@@ -33,6 +37,12 @@ class Camera(Node):
         self.lower_green = np.array([0, 0, 0])
         self.upper_green = np.array([0, 0, 0])
 
+        self.detect = False
+        self.detected_color = ""
+
+        self.green_area = ""
+        self.red_area = ""
+
         # -------- Setup Routines --------
         self.setup_camera()
 
@@ -42,6 +52,11 @@ class Camera(Node):
         self.bridge = CvBridge()
         self.cap.read()
 
+    def detect_cb(self, msg):
+        self.detect = msg.data
+        if self.detect:
+            self.publish_color(self.detected_color)
+            self.detect = False
 
     def recieve_image_cb(self):
         ret, cv_frame = self.cap.read()
@@ -57,7 +72,6 @@ class Camera(Node):
         except CvBridgeError as e:
             print("Couldn't transform from cv2 to image msg")
             print(e)
-
 
     def update_thresholds_cb(self, data):
         if data.color == 0:  # Rojo
@@ -79,7 +93,8 @@ class Camera(Node):
         red_contours, _ = cv2.findContours(red_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for contour in red_contours:
-            if cv2.contourArea(contour) > BUOY_AREA_TH:
+            self.red_area = cv2.contourArea(contour)
+            if self.red_area > BUOY_AREA_TH:
                 M = cv2.moments(contour)
                 if M["m00"] != 0:
                     cX_red = int(M["m10"] / M["m00"])
@@ -89,6 +104,9 @@ class Camera(Node):
 
                 cv2.circle(cv_frame, (cX_red, cY_red), 1, (255, 0, 0), -1)
                 cv2.drawContours(cv_frame, [contour], -1, (255, 0, 0), 2)
+                
+                if self.red_area > self.green_area:
+                    self.detected_color = "Red"
         
         red_mask_frame = cv2.bitwise_and(frame_smooth, frame_smooth, mask=red_mask)
 
@@ -99,7 +117,8 @@ class Camera(Node):
         green_contours, _ = cv2.findContours(green_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for contour in green_contours:
-            if cv2.contourArea(contour) > BUOY_AREA_TH:
+            self.green_area = cv2.contourArea(contour)
+            if self.green_area > BUOY_AREA_TH:
                 M = cv2.moments(contour)
                 if M["m00"] != 0:
                     cX_green = int(M["m10"] / M["m00"])
@@ -109,6 +128,9 @@ class Camera(Node):
 
                 cv2.circle(cv_frame, (cX_green, cY_green), 1, (255, 0, 0), -1)
                 cv2.drawContours(cv_frame, [contour], -1, (255, 0, 0), 2)
+
+                if self.green_area > self.red_area:
+                    self.detected_color = "Green"
         
         green_mask_frame = cv2.bitwise_and(frame_smooth, frame_smooth, mask=green_mask)
 
@@ -116,6 +138,11 @@ class Camera(Node):
 
         cv2.imshow('Camera', cv_frame)
         cv2.imshow('MaskedBuoys', buoy_mask_frame)
+
+    def publish_color(self, color):
+        color_msg = String()
+        color_msg.data = color 
+        self.color_pub.publish(f"{color_msg}")
 
 
 def main(args=None):
