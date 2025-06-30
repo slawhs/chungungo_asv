@@ -4,7 +4,6 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import Joy
-from geometry_msgs.msg import Vector3
 
 from chungungo_interfaces.msg import ThrustersVelocity
 
@@ -22,8 +21,8 @@ class JoystickVelocity(Node):
         # -------- Setup Routines --------
 
     def joy_cb(self, joy_msg):
-        self.vel_msg.x = joy_msg.axes[1] * 1050.0
-        self.vel_msg.y = joy_msg.axes[3] * 1050.0
+        self.vel_msg.left_velocity = joy_msg.axes[1] * 1050.0
+        self.vel_msg.right_velocity = joy_msg.axes[3] * 1050.0
         
         # Publish the converted values
         self.vel_pub.publish(self.vel_msg)
