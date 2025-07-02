@@ -4,15 +4,14 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Vector3
-from geometry_msgs.msg import Quaternion
 from chungungo_interfaces.msg import ThrustersVelocity
-from tf_transformations import euler_from_quaternion
+from time import time
 import numpy as np
 
-
-ANGLE_KP = 1.0
-ANGLE_KI = 0.0
-ANGLE_KD = 0.0
+# TODO:
+# CALIBRAR PID
+# AJUSTAR ESCALON
+# COMPROBAR VELOCIDAD
 
 VEL_KP = 1.0
 VEL_KI = 0.0
@@ -68,35 +67,38 @@ class IMUctrl(Node):
         # PID Controller
         self.Ts = 0.01
         self.pid_vel = PIDError(VEL_KP, VEL_KI, VEL_KD, -2.0, 2.0)
-        self.pid_angle = PIDError(ANGLE_KP, ANGLE_KI, ANGLE_KD, -2.0, 2.0)
-
         self.desired_vel = 0.0
-        self.desired_angle = 0.0
-
+        
         self.linear_vel = 0.0
-        self.angular_vel = 0.0
+        self.last_vel = 0.0
+        self.last_time = time()
 
         # Imu data
-        self.orientation = Vector3()
-        self.linear_acceleration = Vector3()
+        self.linear_acceleration = 0.0
 
     def imu_cb(self, imu_msg):
-        orientation_list = [imu_msg.orientation.x, imu_msg.orientation.y, imu_msg.orientation.z, imu_msg.orientation.w]
-        (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
-        self.orientation.x = roll
-        self.orientation.y = pitch
-        self.orientation.z = yaw
-        self.linear_acceleration = imu_msg.linear_acceleration
+        # Revisar si el vector es el que corresponde.
+        self.last_vel = self.linear_vel
+        self.linear_acceleration = imu_msg.linear_acceleration.x
+        self.linear_vel = self.linear_acceleration * (time() - self.last_time) + self.last_vel
+        self.last_time = time()
+
+        # self.get_logger().info(f"Linear Velocity: {self.linear_vel:.2f} m/s")
+        self.vel_controller()
 
 
-    def por_nombrar(self):
+
+    def vel_controller(self):
         # Controlador de velocidad
+        control_effort = self.pid_vel.compute_control(self.desired_vel, self.linear_vel)
+
+        # No estoy muy seguro de esto, hay que agregar un escalon?
+        self.vel_msg.left_velocity = control_effort
+        self.vel_msg.right_velocity = control_effort
+        self.vel_pub.publish(self.vel_msg)
         pass
 
-    def angle_controler(self):
-        # Controlador de angulo
-        
-        pass
+
 
 def main(args=None):
     rclpy.init(args=args)
