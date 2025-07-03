@@ -44,6 +44,8 @@ class Camera(Node):
         self.green_area = 0.0
         self.red_area = 0.0
 
+        self.red_hue_wrap = False
+
         # -------- Setup Routines --------
         self.setup_camera()
 
@@ -78,9 +80,10 @@ class Camera(Node):
         if data.color == 0:  # Rojo
             self.lower_red = np.array([data.h_low, 100, 50]) 
             self.upper_red = np.array([data.h_high, 255, 255])
+            self.red_hue_wrap = data.h_low > data.h_high  # Red Hue wraparound happening
 
         if data.color == 1:  # Verde
-            self.lower_green = np.array([data.h_low, 100, 50]) 
+            self.lower_green = np.array([data.h_low, 70, 50]) 
             self.upper_green = np.array([data.h_high, 255, 255])
 
     def color_masks(self, ret, cv_frame):
@@ -89,8 +92,15 @@ class Camera(Node):
         
         # ------------ Red mask ------------
 
-        red_mask = cv2.inRange(hsv_frame, self.lower_red, self.upper_red)
-        red_edges = cv2.Canny(red_mask, 100, 255)  # check
+        if self.red_hue_wrap:   # if red Hue values are around 0
+            red_mask_1 = cv2.inRange(hsv_frame, (0, self.lower_red[1], self.lower_red[2]), self.upper_red)
+            red_mask_2 = cv2.inRange(hsv_frame, self.lower_red, (179, self.upper_red[1], self.upper_red[2]))
+            red_mask = cv2.bitwise_or(red_mask_1, red_mask_2)
+
+        else: 
+            red_mask = cv2.inRange(hsv_frame, self.lower_red, self.upper_red)
+        
+        red_edges = cv2.Canny(red_mask, 100, 255)
         red_contours, _ = cv2.findContours(red_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for contour in red_contours:

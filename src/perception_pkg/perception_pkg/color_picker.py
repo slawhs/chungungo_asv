@@ -11,6 +11,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 N_CAM = 0
+RED_WRAP_HUE = 20
 
 class ColorPicker(Node):
     def __init__(self): 
@@ -119,22 +120,31 @@ class ColorPicker(Node):
     #     return lower_hsv, upper_hsv
 
     def get_hsv_range(self, masked_pixels):
-        masked_pixels = np.array(masked_pixels, dtype=np.float32)
+        hsv = masked_pixels.astype(np.float32)
+        h, s, v = hsv[:, 0], hsv[:, 1], hsv[:, 2]
 
-        # 5th and 95th percentiles to reduce influence of outliers (e.g., white light)
-        lower_percentile = np.percentile(masked_pixels, 10, axis=0)
-        upper_percentile = np.percentile(masked_pixels, 90, axis=0)
+        h_shifted = h.copy()
+        h_shifted[h < RED_WRAP_HUE] += 180  # Shift hues < 20 to "unwrap" red around 0
+
+        h_low = np.percentile(h_shifted, 5) % 180
+        h_high = np.percentile(h_shifted, 95) % 180
+
+        s_low = np.percentile(s, 5)
+        s_high = np.percentile(s, 95)
+
+        v_low = np.percentile(v, 5)
+        v_high = np.percentile(v, 95)
 
         lower_hsv = np.array([
-            max(0, lower_percentile[0]),
-            max(0, lower_percentile[1]),
-            max(0, lower_percentile[2])
+            max(0, h_low),
+            max(0, s_low),
+            max(0, v_low)
         ]).astype(np.uint8)
 
         upper_hsv = np.array([
-            min(179, upper_percentile[0]),
-            min(255, upper_percentile[1]),
-            min(255, upper_percentile[2])
+            min(179, h_high),
+            min(255, s_high),
+            min(255, v_high)
         ]).astype(np.uint8)
 
         return lower_hsv, upper_hsv
