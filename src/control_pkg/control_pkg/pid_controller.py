@@ -19,9 +19,9 @@ class PIDController():
     def pid(self, setpoint, feedback):
         error = setpoint - feedback
 
-        K0 = self.kp + self.Ts * self.ki + self.kd / self.Ts
-        K1 = -self.kp - 2 * self.kd / self.Ts
-        K2 = self.kd / self.Ts
+        K0 = self.Kp + self.Ts * self.Ki + self.Kd / self.Ts
+        K1 = -self.Kp - 2 * self.Kd / self.Ts
+        K2 = self.Kd / self.Ts
 
         control_effort = self.control_prev + K0 * error + K1 * self.error_prev + K2 * self.error_prev_prev
 
