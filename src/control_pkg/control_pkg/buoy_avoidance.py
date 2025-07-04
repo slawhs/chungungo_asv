@@ -3,6 +3,7 @@
 import rclpy
 from rclpy.node import Node
 from chungungo_interfaces.msg import CloseBuoysCentroids, ThrustersVelocity
+from control_pkg.pid_controller import PIDController
 import numpy as np
 
 ANGLE_KP = 1.0
@@ -12,6 +13,8 @@ ANGLE_KD = 0.0
 DIST_KP = 1.0
 DIST_KI = 0.0
 DIST_KD = 0.0
+
+SATURATION = 1050
 
 ANGLE_TH = 1.5*(np.pi/180)
 BASE_VELOCITY = 0.0
@@ -33,10 +36,7 @@ class BuoyAvoidance(Node):
         self.timer = self.create_timer(timer_period, self.control_cb)
 
         # PID Controller
-        self.Ts = 0.01
-        self.error_prev = 0.0 
-        self.error_prev_prev = 0.0 
-        self.control_prev = 0.0
+        self.angle_controller = PIDController(Kp=ANGLE_KP, Ki=ANGLE_KI, Kd=ANGLE_KD, saturation=SATURATION, Ts=0.01)
 
         self.distance_to_buoy = 0.0
         self.angle_to_buoy = 0.0
@@ -66,28 +66,10 @@ class BuoyAvoidance(Node):
 
     def control_cb(self):
         if self.angle_control:
-            diff_velocity = self.pid(setpoint=0, feedback=self.angle_to_buoy, kp=ANGLE_KP, ki=ANGLE_KI, kd=ANGLE_KD)
+            diff_velocity = self.angle_controller.pid(setpoint=0, feedback=self.angle_to_buoy)
             self.publish_velocity(linear_velocity=BASE_VELOCITY, diff_velocity=diff_velocity)
         else:
             self.publish_velocity(linear_velocity=0, diff_velocity=0)
-
-    def pid(self, setpoint, feedback, kp, ki, kd):
-        error = setpoint - feedback
-
-        K0 = kp + self.Ts * ki + kd / self.Ts
-        K1 = -kp - 2 * kd / self.Ts
-        K2 = kd / self.Ts
-
-        control_effort = self.control_prev + K0 * error + K1 * self.error_prev + K2 * self.error_prev_prev
-
-        control_effort = np.clip(control_effort, -1050, 1050)
-
-        # Shift states for next iteration
-        self.error_prev_prev = self.error_prev
-        self.error_prev = error
-        self.control_prev = control_effort
-
-        return control_effort
     
 
     def publish_velocity(self, linear_velocity, diff_velocity):
