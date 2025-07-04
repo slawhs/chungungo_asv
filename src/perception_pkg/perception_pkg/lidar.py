@@ -19,11 +19,11 @@ RANGE_MAX = 12.0
 N_SAMPLES = 720
 
 # ------ Clustering parameters ------
-EPS = 0.01  #? Distance (meters) between two points to be considered in the same cluster
+EPS = 0.005  #? Distance (meters) between two points to be considered in the same cluster
 CLUSTER_MIN_SAMPLES = 6
-CLUSTER_MAX_SAMPLES = 30
-MIN_DIST_FILTER = 0.3
-MAX_DIST_FILTER = 0.8
+CLUSTER_MAX_SAMPLES = 35
+MIN_DIST_FILTER = 0.8
+MAX_DIST_FILTER = 1.5
     
 class Lidar(Node): 
     def __init__(self):
@@ -58,12 +58,14 @@ class Lidar(Node):
             clusters = self.clustering.fit(self.cartesian_samples)
             centroids = self.get_centroids(clusters)
             # print(f"Centroids:\n{centroids}")
-            polar_centroids = self.cartesian_to_polar(centroids)
-            self.publish_centroids(polar_centroids)
+            polar_centroids_radians, polar_centroids_degrees = self.cartesian_to_polar(centroids)
+            self.publish_centroids(polar_centroids_degrees)
             # print(f"Polar Centroids:\n{polar_centroids}")
-            self.publish_samples_laserscan(polar_centroids, topic="centroids_laserscan")
+            self.publish_samples_laserscan(polar_centroids_radians, topic="centroids_laserscan")
 
         else:
+            invalid_centroids = np.array([[np.nan, np.nan],[np.nan, np.nan]])
+            self.publish_centroids(invalid_centroids)
             self.get_logger().debug(f"Only {n_pts} pts < min_samples={CLUSTER_MIN_SAMPLES} – skip clustering")
 
     def samples_to_polar(self, ranges):
@@ -92,8 +94,8 @@ class Lidar(Node):
         theta = polar_samples[:, 1]
         
         # Calculate x and y coordinates using vectorized operations
-        x = r * np.sin(theta)   # +X is down
-        y = r * np.cos(theta)   # +Y is right
+        x = r * np.sin(theta)
+        y = r * np.cos(theta)
         
         # Stack x and y to create the Cartesian coordinates
         cartesian_samples = np.column_stack((x, y))
@@ -104,11 +106,17 @@ class Lidar(Node):
         x = cartesian_points[:, 0]
         y = cartesian_points[:, 1]
 
-        r     = np.hypot(x, y)          # √(x² + y²)
-        theta = np.arctan2(x, y)        # note the swapped order!
-        theta = np.mod(theta, 2*np.pi)  # map to [0, 2π)
+        r     = np.hypot(x, y)
+        theta = np.arctan2(x, y)
 
-        return np.column_stack((r, theta))
+        theta_radians = np.mod(theta, 2*np.pi)
+        theta_degrees = np.degrees(theta)
+           
+
+        polar_points_radians = np.column_stack((r, theta_radians))
+        polar_points_degrees = np.column_stack((r, theta_degrees))
+
+        return polar_points_radians, polar_points_degrees
     
     def get_centroids(self, clusters, k: int = 2) -> np.ndarray:
         labels = clusters.labels_
@@ -135,13 +143,13 @@ class Lidar(Node):
 
         # order by smallest distance (nearest objects first)
         order = np.argsort(dists)
-        top_idx   = order[:k]            # indices within 'keep' / 'centroids_all'
+        top_idx   = order[:k]            # indices within keep/centroids_all
         top_labels = keep[top_idx]
         centroids  = centroids_all[top_idx]
         
 
         # ----- logging -------------------------------------------------------
-        cluster_info = [(int(lbl), int(sizes[lbl]), float(dists[i])) for i, lbl in enumerate(top_labels)]
+        # cluster_info = [(int(lbl), int(sizes[lbl]), float(dists[i])) for i, lbl in enumerate(top_labels)]
         # self.get_logger().info(f"Clusters kept (label, size, range): {cluster_info}")
 
         return centroids
@@ -175,15 +183,17 @@ class Lidar(Node):
     def publish_centroids(self, centroids):
         if centroids.size == 0:
             self.get_logger().debug("No centroids - nothing to publish.")
-            return                                    #  <-- salir sin publicar
+            return
 
         msg = CloseBuoysCentroids()
 
-        # 1) primer centroide (existe siempre que size > 0)
+        # first centroid, exists if size > 0
         msg.centroid_1.range = float(centroids[0, 0])
         msg.centroid_1.theta = float(centroids[0, 1])
+        self.get_logger().info(f"Closest buoy is at {centroids[0, 0]:.3f} meters with angle {centroids[0, 1]:.3f}")
 
-        # 2) segundo centroide, sólo si hay ≥ 2
+
+        # second centroid, exists size ≥ 2
         if centroids.shape[0] > 1:
             msg.centroid_2.range = float(centroids[1, 0])
             msg.centroid_2.theta = float(centroids[1, 1])
