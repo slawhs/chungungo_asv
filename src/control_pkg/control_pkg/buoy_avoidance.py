@@ -6,8 +6,8 @@ from chungungo_interfaces.msg import CloseBuoysCentroids, ThrustersVelocity
 from control_pkg.pid_controller import PIDController
 import numpy as np
 
-ANGLE_KP = 1.0
-ANGLE_KI = 0.0
+ANGLE_KP = 15.0
+ANGLE_KI = 1.5
 ANGLE_KD = 0.0
 
 DIST_KP = 1.0
@@ -73,8 +73,8 @@ class BuoyAvoidance(Node):
     
 
     def publish_velocity(self, linear_velocity, diff_velocity):
-        left_velocity = BASE_VELOCITY + diff_velocity
-        right_velocity = BASE_VELOCITY - diff_velocity
+        left_velocity = linear_velocity + diff_velocity
+        right_velocity = linear_velocity - diff_velocity
 
         self.get_logger().info(f"Diff Velocity is: L = {left_velocity:.3f} | R = {right_velocity:.3f}")
 
