@@ -1,0 +1,6 @@
+<launch>
+
+    <include file="$(find-pkg-share bno055)/launch/bno055.launch.py" />
+    <node pkg="sensor_pkg" exec="imu_vel_ctrl"/>
+
+</launch>
