@@ -19,7 +19,7 @@ class Camera(Node):
 
         # -------- Parameters Setup --------
         self.declare_parameter("n_cam", 2)
-        self.delare_parameter("buoy_area_th", 10.0)
+        self.declare_parameter("buoy_area_th", 10.0)
 
         self.n_cam = self.get_parameter("n_cam").value
         self.buoy_area_th = self.get_parameter("n_cam").value
@@ -97,8 +97,8 @@ class Camera(Node):
         # ------------ Red mask ------------
 
         if self.red_hue_wrap:   # if red Hue values are around 0
-            red_mask_1 = cv2.inRange(hsv_frame, (0, self.lower_red[1], self.lower_red[2]), self.upper_red)
-            red_mask_2 = cv2.inRange(hsv_frame, self.lower_red, (179, self.upper_red[1], self.upper_red[2]))
+            red_mask_1 = cv2.inRange(hsv_frame, np.array((0, self.lower_red[1], self.lower_red[2])), self.upper_red)
+            red_mask_2 = cv2.inRange(hsv_frame, self.lower_red, np.array((179, self.upper_red[1], self.upper_red[2])))
             red_mask = cv2.bitwise_or(red_mask_1, red_mask_2)
 
         else: 
