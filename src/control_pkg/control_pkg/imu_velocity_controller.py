@@ -5,10 +5,11 @@ from rclpy.node import Node
 
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import Float32
 from chungungo_interfaces.msg import ThrustersVelocity
 
 
-from pid_controller import PIDController
+from control_pkg.pid_controller import PIDController
 from time import time
 import numpy as np
 
@@ -28,14 +29,15 @@ class IMUVelocityController(Node):
         super().__init__("IMUVelocityController")
 
         # -------- Publishers and Subscribers --------
-        self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_cb, 1)
-        self.vel_pub = self.create_publisher(ThrustersVelocity, '/imu_velocity', 10)
+        self.vel_sub = self.create_subscription(Float32, "/imu_ctrl/setpoint", self.set_desired_velocity, 1)
+        self.imu_sub = self.create_subscription(Imu, "/bno055/imu", self.imu_cb, 1)
+        self.vel_pub = self.create_publisher(ThrustersVelocity, '/imu_ctrl/velocity', 10)
 
         # -------- Atributes --------
         self.vel_msg = ThrustersVelocity()
         
-        timer_period = 0.01 
-        self.timer = self.create_timer(timer_period, self.control_cb)
+        # timer_period = 0.01 
+        # self.timer = self.create_timer(timer_period, self.control_cb)
 
         # PID Controller
         self.Ts = 0.01
@@ -45,15 +47,20 @@ class IMUVelocityController(Node):
         self.linear_vel = 0.0
         self.last_vel = 0.0
         self.last_time = time()
-
+        self.last_acel = 0.0
         # Imu data
         self.linear_acceleration = 0.0
+
+    def set_desired_velocity(self, desired_velocity):
+        """Set the desired velocity for the thrusters."""
+        self.desired_vel = desired_velocity.data
+        self.get_logger().info(f"Desired Velocity set to: {self.desired_vel:.2f} m/s")
 
     def imu_cb(self, imu_msg):
         # Revisar si el vector es el que corresponde.
         self.last_vel = self.linear_vel
-        self.linear_acceleration = imu_msg.linear_acceleration.x
-        self.linear_vel = self.linear_acceleration * (time() - self.last_time) + self.last_vel
+        self.linear_acceleration = imu_msg.linear_acceleration.y
+        self.linear_vel = self.linear_acceleration * (time() -self.last_time) + self.last_vel
         self.last_time = time()
 
         # self.get_logger().info(f"Linear Velocity: {self.linear_vel:.2f} m/s")
@@ -68,9 +75,12 @@ class IMUVelocityController(Node):
         # No estoy muy seguro de esto, hay que agregar un escalon?
         self.vel_msg.left_velocity = control_effort
         self.vel_msg.right_velocity = control_effort
+        # self.get_logger().info(f"Linear Velocity: {self.linear_vel:.2f} m/s")
+        self.get_logger().info(f"Linear Velocity: {(self.linear_vel*3.6):.2f} km/h")
+
+        # self.get_logger().info(f"Control Effort: {control_effort:.2f}")
         self.vel_pub.publish(self.vel_msg)
         pass
-
 
 
 def main(args=None):
