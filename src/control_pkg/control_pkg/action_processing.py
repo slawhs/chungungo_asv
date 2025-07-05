@@ -34,6 +34,9 @@ def main(args=None):
     node = ActionProcessing()
     rclpy.spin(node)
     rclpy.shutdown()
+    final_msg = String()
+    final_msg.data = "standby"
+    node.mode_pub.publish(final_msg)
     
     
 if __name__ == "__main__":
