@@ -17,29 +17,41 @@ ANGLE_MAX = 3.1415927410125732
 RANGE_MIN = 0.15
 RANGE_MAX = 12.0
 N_SAMPLES = 720
-
-# ------ Clustering parameters ------
-EPS = 0.005  #? Distance (meters) between two points to be considered in the same cluster
-CLUSTER_MIN_SAMPLES = 6
-CLUSTER_MAX_SAMPLES = 35
-MIN_DIST_FILTER = 0.8
-MAX_DIST_FILTER = 1.5
     
 class Lidar(Node): 
     def __init__(self):
         super().__init__("Lidar")
 
+        # -------- Parameters --------
+        self.parameters_setup()
+
         # -------- Publishers and Subscribers --------
-        self.laser_sub = self.create_subscription(LaserScan, "/scan", self.lidar_scan_cb, 1)
-        self.filtered_scan_pub = self.create_publisher(LaserScan, "/filtered_scan", 1)
-        self.centroids_pub = self.create_publisher(CloseBuoysCentroids, "/centroids", 1)
-        self.centroids_ls_pub = self.create_publisher(LaserScan, "/centroids_laserscan", 1)
+        self.interfaces_setup()
         
         # -------- Atributes --------
         self.polar_samples = None
         self.filtered_polar_samples = None
         self.cartesian_samples = None
-        self.clustering = OPTICS(eps=EPS, min_samples=CLUSTER_MIN_SAMPLES)
+        self.clustering = OPTICS(eps=self.eps, min_samples=self.cluster_min_samples)
+
+    def parameters_setup(self):
+        self.declare_parameter("eps", 0.01)
+        self.declare_parameter("cluster_min_samples", 6)
+        self.declare_parameter("cluster_max_samples", 35)
+        self.declare_parameter("min_dist_filter", 0.6)
+        self.declare_parameter("max_dist_filter", 1.5)
+
+        self.eps = self.get_parameter("eps").value
+        self.cluster_min_samples = self.get_parameter("cluster_min_samples").value
+        self.cluster_max_samples = self.get_parameter("cluster_max_samples").value
+        self.min_dist_filter = self.get_parameter("min_dist_filter").value
+        self.max_dist_filter = self.get_parameter("max_dist_filter").value
+    
+    def interfaces_setup(self):
+        self.laser_sub = self.create_subscription(LaserScan, "/scan", self.lidar_scan_cb, 1)
+        self.filtered_scan_pub = self.create_publisher(LaserScan, "/filtered_scan", 1)
+        self.centroids_pub = self.create_publisher(CloseBuoysCentroids, "/centroids", 1)
+        self.centroids_ls_pub = self.create_publisher(LaserScan, "/centroids_laserscan", 1)
 
     def lidar_scan_cb(self, msg: LaserScan):  #? 720 samples
         self.detect_buoys(msg)
@@ -53,7 +65,7 @@ class Lidar(Node):
         
         
         n_pts = self.cartesian_samples.shape[0]
-        if n_pts >= CLUSTER_MIN_SAMPLES:  # if there is something to cluster   
+        if n_pts >= self.cluster_min_samples:  # if there is something to cluster   
             print("Clustering...")
             clusters = self.clustering.fit(self.cartesian_samples)
             centroids = self.get_centroids(clusters)
@@ -66,7 +78,7 @@ class Lidar(Node):
         else:
             invalid_centroids = np.array([[np.nan, np.nan],[np.nan, np.nan]])
             self.publish_centroids(invalid_centroids)
-            self.get_logger().debug(f"Only {n_pts} pts < min_samples={CLUSTER_MIN_SAMPLES} – skip clustering")
+            self.get_logger().debug(f"Only {n_pts} pts < min_samples={self.cluster_min_samples} – skip clustering")
 
     def samples_to_polar(self, ranges):
         ranges = np.asarray(ranges, dtype=np.float32)
@@ -83,7 +95,7 @@ class Lidar(Node):
         front_samples = np.vstack((raw_samples[leftmost_angle:], raw_samples[:rightmost_angle+1]))
         
         #? Filter samples by distance
-        distance_mask = ((front_samples[:, 0] >= MIN_DIST_FILTER) & (front_samples[:, 0] <= MAX_DIST_FILTER))
+        distance_mask = ((front_samples[:, 0] >= self.min_dist_filter) & (front_samples[:, 0] <= self.max_dist_filter))
         
         filtered_samples = front_samples[distance_mask]
 
@@ -128,10 +140,10 @@ class Lidar(Node):
 
         # ---- cluster sizes ---------------------------------------------------
         sizes = np.bincount(labels[valid_mask])
-        keep = np.where((0 < sizes) & (sizes <= CLUSTER_MAX_SAMPLES))[0]
+        keep = np.where((0 < sizes) & (sizes <= self.cluster_max_samples))[0]
 
         if keep.size == 0:
-            self.get_logger().info(f"All clusters exceed samples cap = {CLUSTER_MAX_SAMPLES}")
+            self.get_logger().info(f"All clusters exceed samples cap = {self.cluster_max_samples}")
             return np.empty((0, 2), dtype=float)
 
 
