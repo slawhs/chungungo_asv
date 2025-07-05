@@ -41,9 +41,13 @@ class Camera():
         self.detect = False
         self.detected_color = ""
 
-        self.green_area = 0.0
-        self.red_area = 0.0
+        self.min_x_red = float('inf')
+        self.max_x_red = float('-inf')
 
+        self.min_x_green = float('inf')
+        self.max_x_green = float('-inf')
+
+        self.buoys_array = [None, None, None, None]  # [red_left, red_right, green_left, green_right]
 
         # -------- Setup Routines --------
         self.setup_camera()
@@ -87,6 +91,8 @@ class Camera():
         red_mask = cv2.inRange(hsv_frame, self.lower_red, self.upper_red)
 
         red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        self.min_x_red = float('inf')
+        self.max_x_red = float('-inf')
 
         for contour in red_contours:
             area = cv2.contourArea(contour)
@@ -109,6 +115,16 @@ class Camera():
                 y_min_x = y_coords[x_coords == min_x].min()
                 y_max_x = y_coords[x_coords == max_x].max()
 
+                if min_x < self.min_x_red: # this contour is the leftmost red buoy
+                    # id for leftmost red buoy = 0
+                    self.min_x_red = min_x
+                    self.set_buoys(0, "red")
+
+                if max_x > self.max_x_red: # this contour is the rightmost red buoy
+                    # id for rightmost red buoy = 1
+                    self.max_x_red = max_x
+                    self.set_buoys(1, "red")
+
                 cv2.circle(cv_frame, (min_x, y_min_x), 10, (0, 0, 0), -1)
                 cv2.circle(cv_frame, (max_x, y_max_x), 10, (255, 255, 0), -1)
 
@@ -121,6 +137,8 @@ class Camera():
         green_mask = cv2.inRange(hsv_frame, self.lower_green, self.upper_green)
 
         green_contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        self.min_x_green = float('inf')
+        self.max_x_green = float('-inf')
 
         for contour in green_contours:
             area = cv2.contourArea(contour)
@@ -142,6 +160,16 @@ class Camera():
                 y_min_x = y_coords[x_coords == min_x].min()
                 y_max_x = y_coords[x_coords == max_x].max()
 
+                if min_x < self.min_x_green: # this contour is the leftmost green buoy
+                    # id for leftmost green buoy = 2
+                    self.min_x_green = min_x
+                    self.set_buoys(2, "green")
+
+                if max_x > self.max_x_green: # this contour is the rightmost green buoy
+                    # id for rightmost green buoy = 3
+                    self.max_x_green = max_x
+                    self.set_buoys(3, "green")
+
                 cv2.circle(cv_frame, (min_x, y_min_x), 10, (0, 0, 0), -1)
                 cv2.circle(cv_frame, (max_x, y_max_x), 10, (255, 255, 0), -1)
 
@@ -155,6 +183,9 @@ class Camera():
         cv2.imshow('Camera', cv_frame)
         cv2.imshow('MaskedBuoys', buoy_mask_frame)
 
+    def set_buoys(self, id, color):
+        buoy = Buoy(id, color)
+        self.buoys_array[id] = buoy
 
     # def publish_color(self, color):
     #     color_msg = String()
@@ -163,22 +194,22 @@ class Camera():
 
 
 class Buoy():
-    def __init__(self):
-        self.id = None
-        self.color = None
+    def __init__(self, id: int, color: str):
+        self.id = id
+        self.color = color
 
         self.distance = None
         self.angle = None
 
+        self.name = ""
 
-    def set_id(self, id):
-        self.id = id
+        self.set_name()
+
+    def __str__(self):
+        return f"{self.name}, Distance: {self.distance}, Angle: {self.angle}"
 
     def get_id(self):
         return self.id
-
-    def set_color(self, color):
-        self.color = color
 
     def get_color(self):
         return self.color
@@ -194,6 +225,12 @@ class Buoy():
 
     def get_angle(self):
         return self.angle
+    
+    def set_name(self):
+        if self.id % 2 == 0:
+            self.name = f"Buoy {self.id} - {self.color} - Left"
+        else:
+            self.name = f"Buoy {self.id} - {self.color} - Right"
 
 
 def main(args=None):
