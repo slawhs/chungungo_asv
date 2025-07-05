@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'imu_velocity_controller = sensors_pkg.imu_vel_ctrl:main',
         ],
     },
 )
