@@ -35,7 +35,7 @@ class Thrusters(Node):
         vel_cmd = f"{request.left_velocity},{request.right_velocity}\n"
         self.get_logger().info(f"[Setpoints] Left: {request.left_velocity} RPM | Right: {request.right_velocity} RPM")
         self.serial.write(vel_cmd.encode("utf-8"))
-        response.left_rpm, response.right_rpm = self.get_rpm_feedback()
+        # response.left_rpm, response.right_rpm = self.get_rpm_feedback()
 
         return response
 
