@@ -65,6 +65,10 @@ class ThrustersVelMux(Node):
             self.request.left_velocity = 0.0
             self.request.right_velocity = 0.0
 
+        else:
+            self.request.left_velocity = 0.0
+            self.request.right_velocity = 0.0
+
         self.future = self.vel_cmd_cli.call_async(self.request)
 
         if self.future.done():
