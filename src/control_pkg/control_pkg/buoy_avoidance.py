@@ -75,7 +75,13 @@ class BuoyAvoidance(Node):
     def publish_velocity(self, linear_velocity, diff_velocity):
         left_velocity = BASE_VELOCITY + diff_velocity
         right_velocity = BASE_VELOCITY - diff_velocity
+
         self.get_logger().info(f"Diff Velocity is: L = {left_velocity:.3f} | R = {right_velocity:.3f}")
+
+        msg = ThrustersVelocity()
+        msg.left_velocity = left_velocity
+        msg.right_velocity = right_velocity
+        self.buoy_distance_vel_pub.publish(msg)
 
 
 def main(args=None):
