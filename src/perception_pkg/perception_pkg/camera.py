@@ -12,16 +12,21 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-N_CAM = 2
-BUOY_AREA_TH = 10
-
 
 class Camera(Node):
     def __init__(self):
         super().__init__("Camera")
 
+        # -------- Parameters Setup --------
+        self.declare_parameter("n_cam", 2)
+        self.delare_parameter("buoy_area_th", 10.0)
+
+        self.n_cam = self.get_parameter("n_cam").value
+        self.buoy_area_th = self.get_parameter("n_cam").value
+
         # -------- Publishers and Subscribers --------
         self.image_pub = self.create_publisher(Image, "/camera", 10)
+        self.masked_image_pub = self.create_publisher(Image, "/masked_buoys", 10)
         self.color_pub = self.create_publisher(String, "/color_detection", 10)
 
         self.detect_sub = self.create_subscription(Bool, "/detect_order", self.detect_cb, 10)
@@ -51,7 +56,7 @@ class Camera(Node):
 
 
     def setup_camera(self):
-        self.cap = cv2.VideoCapture(N_CAM, cv2.CAP_V4L2)
+        self.cap = cv2.VideoCapture(self.n_cam, cv2.CAP_V4L2)
         self.bridge = CvBridge()
         self.cap.read()
 
@@ -63,14 +68,13 @@ class Camera(Node):
 
     def recieve_image_cb(self):
         ret, cv_frame = self.cap.read()
-        # cv2.flip(cv_frame, 1, cv_frame)
-        img_msg = self.bridge.cv2_to_imgmsg(cv_frame, encoding='bgr8')
-        # cv2.imshow("Camera", cv_frame)
-        self.color_masks(ret, cv_frame)
+    
+        buoy_mask_frame = self.color_masks(ret, cv_frame)
+
         cv2.waitKey(1)
 
         try:
-            self.image_pub.publish(img_msg)
+            self.publish_images(cv_frame, buoy_mask_frame)
             
         except CvBridgeError as e:
             print("Couldn't transform from cv2 to image msg")
@@ -105,7 +109,7 @@ class Camera(Node):
 
         for contour in red_contours:
             self.red_area = cv2.contourArea(contour)
-            if self.red_area > BUOY_AREA_TH:
+            if self.red_area > self.buoy_area_th:
                 M = cv2.moments(contour)
                 if M["m00"] != 0:
                     cX_red = int(M["m10"] / M["m00"])
@@ -129,7 +133,7 @@ class Camera(Node):
 
         for contour in green_contours:
             self.green_area = cv2.contourArea(contour)
-            if self.green_area > BUOY_AREA_TH:
+            if self.green_area > self.buoy_area_th:
                 M = cv2.moments(contour)
                 if M["m00"] != 0:
                     cX_green = int(M["m10"] / M["m00"])
@@ -147,13 +151,25 @@ class Camera(Node):
 
         buoy_mask_frame = cv2.bitwise_or(red_mask_frame, green_mask_frame)
 
-        cv2.imshow('Camera', cv_frame)
-        cv2.imshow('MaskedBuoys', buoy_mask_frame)
+        # cv2.imshow('Camera', cv_frame)
+        # cv2.imshow('MaskedBuoys', buoy_mask_frame)
+
+        return buoy_mask_frame
 
     def publish_color(self, color):
         color_msg = String()
         color_msg.data = color
         self.color_pub.publish(color_msg)
+
+    def publish_images(self, cv_frame, buoy_mask_frame):
+        img_msg = self.bridge.cv2_to_imgmsg(cv_frame, encoding='bgr8')
+
+        buoy_mask_bgr = cv2.cvtColor(buoy_mask_frame, cv2.COLOR_HSV2BGR)
+        buoy_mask_msg = self.bridge.cv2_to_imgmsg(buoy_mask_bgr, encoding='bgr8')
+
+
+        self.image_pub.publish(img_msg)
+        self.masked_image_pub.publish(buoy_mask_msg)
 
 
 def main(args=None):
