@@ -49,8 +49,8 @@ struct Motores motor1 = {
     { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },  // rpm_values
     0.0,                               // rpm_avg
     0,                                 // Agua
-    1.7,                               // Kp
-    0.4,                               // Ki
+    4.0,                               // Kp
+    0.0,                               // Ki
     0.0,                               // Kd
     0.0,                               // setpoint
     0.0,                               // e_prev1
@@ -61,8 +61,8 @@ struct Motores motor2 = {
     { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },  // rpm_values
     0.0,                               // rpm_avg
     0,                                 // Agua
-    1.0,                               // Kp
-    0.0,                               // Ki
+    1.7,                               // Kp
+    0.4,                               // Ki
     0.0,                               // Kd
     0.0,                               // setpoint
     0.0,                               // e_prev1
@@ -90,21 +90,21 @@ void add_rpm_value(Motores &motor, float new_val) {
 const float Ts = 0.01;  // Sample time in seconds
 
 
-void IRAM_ATTR contarPulsoA1() {
-    if (digitalRead(enc1_ENCODER_A) != digitalRead(enc1_ENCODER_B)) {
-        enc1_pulsos++;
-    } else {
-        enc1_pulsos--;
-    }
-}
+// void IRAM_ATTR contarPulsoA1() {
+//     if (digitalRead(enc1_ENCODER_A) == digitalRead(enc1_ENCODER_B)) {
+//         enc1_pulsos++;
+//     } else {
+//         enc1_pulsos--;
+//     }
+// }
 
-void IRAM_ATTR contarPulsoA2() {
-    if (digitalRead(enc2_ENCODER_A) != digitalRead(enc2_ENCODER_B)) {
-        enc2_pulsos++;
-    } else {
-        enc2_pulsos--;
-    }
-}
+// void IRAM_ATTR contarPulsoA2() {
+//     if (digitalRead(enc2_ENCODER_A) != digitalRead(enc2_ENCODER_B)) {
+//         enc2_pulsos++;
+//     } else {
+//         enc2_pulsos--;
+//     }
+// }
 
 void feedbackRPi() {
     // Enviar datos de RPM y setpoint a la Raspberry Pi
@@ -230,20 +230,20 @@ void setup() {
     pinMode(mot1_enA, OUTPUT);
     pinMode(mot1_in1, OUTPUT);
     pinMode(mot1_in2, OUTPUT);
-    pinMode(enc1_ENCODER_A, INPUT_PULLUP);
-    pinMode(enc1_ENCODER_B, INPUT_PULLUP);
+    // pinMode(enc1_ENCODER_A, INPUT_PULLUP);
+    // pinMode(enc1_ENCODER_B, INPUT_PULLUP);
 
     pinMode(mot2_enA, OUTPUT);
     pinMode(mot2_in1, OUTPUT);
     pinMode(mot2_in2, OUTPUT);
-    pinMode(enc2_ENCODER_A, INPUT_PULLUP);
-    pinMode(enc2_ENCODER_B, INPUT_PULLUP);
+    // pinMode(enc2_ENCODER_A, INPUT_PULLUP);
+    // pinMode(enc2_ENCODER_B, INPUT_PULLUP);
     pinMode(relay_pin, OUTPUT);
 
 
     // Inicializar PWM
-    attachInterrupt(enc1_ENCODER_A, contarPulsoA1, RISING);
-    attachInterrupt(enc2_ENCODER_A, contarPulsoA2, RISING);
+    // attachInterrupt(enc1_ENCODER_A, contarPulsoA1, RISING);
+    // attachInterrupt(enc2_ENCODER_A, contarPulsoA2, RISING);
 
     digitalWrite(mot1_in1, LOW);
     digitalWrite(mot1_in2, HIGH);
@@ -295,7 +295,7 @@ void loop() {
         mot1_velocidad(pwm1);
         mot1_direccion(c1);
 
-        //float c2 = control_pid(motor2);
+        // float c2 = control_pid(motor2);
         float c2 = motor2.setpoint;
         int pwm2 = abs(c2);
         mot2_velocidad(pwm2);
@@ -306,7 +306,7 @@ void loop() {
         ultimaMedicion = medicionActual;
 
         /* FEEDBACK */
-        //feedbackPC();
+        // feedbackPC();
         feedbackRPi();
     }
 }
