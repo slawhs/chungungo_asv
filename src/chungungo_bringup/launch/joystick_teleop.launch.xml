@@ -1,8 +1,15 @@
 <launch>
 
-    <node pkg="joy"         exec="joy_node" />
-    <node pkg="control_pkg" exec="joystick_velocity" />
-    <node pkg="control_pkg" exec="thrusters_driver" />
-    <node pkg="control_pkg" exec="thrusters_velocity_mux" />
+    <arg name="device_name" default="ttyUSB1"/>
+    <arg name="baud_rate" default="115200"/>
 
+    <node pkg="control_pkg" exec="thrusters_driver">
+        <param name="device_name" value="$(var device_name)"/>
+        <param name="baud_rate" value="$(var baud_rate)"/>
+    </node>
+
+    <node pkg="control_pkg" exec="thrusters_velocity_mux"/>
+
+    <node pkg="control_pkg" exec="relay_driver"/>
+    
 </launch>
