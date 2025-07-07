@@ -1,14 +1,15 @@
 <launch>
 
-    <arg name="serial_port" default="ttyUSB0"/>
+    <arg name="device_name" default="ttyUSB0"/>
     <arg name="max_dist_filter" default="2.0"/>
-    <arg name="min_dist_filter" default="0.30"/>
+    <arg name="min_dist_filter" default="0.15"/>
     <arg name="cluster_min_samples" default="6"/>
     <arg name="cluster_max_samples" default="35"/>
     <arg name="eps" default="0.02"/>
+    
 
-    <node pkg="rplidar_ros" name="rplidar_composition", exec="rplidar_composition">
-        <param name="serial_port"  value="/dev/$(var serial_port)"/>
+    <node pkg="rplidar_ros" exec="rplidar_composition" name="rplidar_composition" output="screen">
+        <param name="serial_port" value="/dev/$(var device_name)"/>
         <param name="serial_baudrate" value="115200"/>
         <param name="frame_id" value="laser"/>
         <param name="inverted" value="false"/>
@@ -22,6 +23,7 @@
         <param name="cluster_max_samples" value="$(var cluster_max_samples)"/>
         <param name="eps" value="$(var eps)"/>
     </node>
+
     <node pkg="perception_pkg" exec="buoy_tracker"/>
     
     <node pkg="tf2_ros" exec="static_transform_publisher" name="laser_to_lidar" args="--x 0.0 --y 0.0 --z 0.0 --roll 0.0 --pitch 0.0 --yaw 3.1457 --frame-id laser --child-frame-id lidar"/>
