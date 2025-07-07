@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import Bool
-from chungungo_interfaces.msg import CloseBuoysCentroids 
+from chungungo_interfaces.msg import CloseBuoysCentroids, BuoysDetected 
 from std_msgs.msg import String
 
 BUOY_RADIUS = 0.15
@@ -18,7 +18,8 @@ class BuoyTracker(Node):
 
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
         self.color_sub = self.create_subscription(String, "/color_detection", self.color_cb, 10)
-        
+        self.buoys_sub = self.create_subscription(BuoysDetected, "/buoys_detected", self.buoys_cb, 10)
+
         # -------- Atributes --------
         self.centroid_1 = None
         self.centroid_2 = None
@@ -30,6 +31,8 @@ class BuoyTracker(Node):
         self.timer = self.create_timer(timer_period, self.detect_cb)
 
         self.detected_color = ""
+
+        self.detected_buoys = [None, None, None, None]  # List to hold detected buoys
 
     def color_cb(self, msg):
         self.detected_color = msg.data 
@@ -52,6 +55,14 @@ class BuoyTracker(Node):
         detect_msg.data = order
         self.detect_pub.publish(detect_msg)
 
+    def buoys_cb(self, msg: BuoysDetected):
+        self.get_logger().info(f"Buoys detected: {msg}")
+
+        for i, buoy in enumerate([msg.buoy_1, msg.buoy_2, msg.buoy_3, msg.buoy_4]):
+            if buoy.color == "None":
+                self.detected_buoys[i] = buoy
+            else:
+                self.detected_buoys[i] = None
 
 def main(args=None):
     rclpy.init(args=args)
