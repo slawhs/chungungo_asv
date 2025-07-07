@@ -4,11 +4,10 @@
     <arg name="baud_rate" default="115200"/>
 
     <node pkg="control_pkg" exec="thrusters_driver">
-        <param="device_name" value="$(var device_name)"/>
-        <param="baud_rate" value="$(var baud_rate)"/>
+        <param name="device_name" value="$(var device_name)"/>
+        <param name="baud_rate" value="$(var baud_rate)"/>
     </node>
 
-
-    <node pkg="control_pkg" exec="thrusters_velocity_mux" />
+    <node pkg="control_pkg" exec="thrusters_velocity_mux"/>
     
 </launch>
