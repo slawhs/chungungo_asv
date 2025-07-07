@@ -12,11 +12,15 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-from buoy import Buoy
+from perception_pkg.buoy import Buoy
+
+from time import time
 
 
-class Camera():
+class CameraTwoBuoys(Node):
     def __init__(self):
+        super().__init__("CameraTwoBuoys")
+
         # -------- Parameters Setup --------
         self.declare_parameter("n_cam", 2)
         self.declare_parameter("buoy_area_th", 200.0)
@@ -59,6 +63,9 @@ class Camera():
         self.max_x_green = float('-inf')
 
         self.buoys_array = [None, None, None, None]  # [red_left, red_right, green_left, green_right]
+        self.sorted_buoys = [None, None, None, None]  # Sorted buoys by limit
+
+        self.initial_time = time()
 
         # -------- Setup Routines --------
         self.setup_camera()
@@ -70,6 +77,7 @@ class Camera():
             self.get_logger().error("Camera could not be opened")
         self.bridge = CvBridge()
         self.cap.read()
+        self.get_logger().info("Camera initialized successfully")
 
     def detect_cb(self, msg):
         self.detect = msg.data
@@ -108,13 +116,14 @@ class Camera():
         count = 0
         for buoy in self.buoys_array:
             if buoy is not None:
-                print(buoy)
+                print(f"[{(time()-self.initial_time):.2f}] {buoy}")
             else:
-                print("No buoy detected at index", count)
+                print(f"[{(time()-self.initial_time):.2f}]No buoy detected at index {count}")
             count += 1
         print("")
 
     def color_masks(self, ret, cv_frame):
+        print("Processing frame...")
         h_low = self.lower_red[0]
         h_high = self.upper_red[0]
         self.red_hue_wrap = h_low > h_high
@@ -140,11 +149,16 @@ class Camera():
         green_mask_frame = cv2.bitwise_and(frame_smooth, frame_smooth, mask=green_mask)
         self.process_contours(green_mask, cv_frame, 'green', 2, 3, [self.min_x_green], [self.max_x_green])
 
-        if self.debug:
-            buoy_mask_frame = cv2.bitwise_or(red_mask_frame, green_mask_frame)
+        # sort buoys by limit
+        self.sort_buoys()
 
+        buoy_mask_frame = cv2.bitwise_or(red_mask_frame, green_mask_frame)
+    
+        if self.debug:
             cv2.imshow('Camera', cv_frame)
             cv2.imshow('MaskedBuoys', buoy_mask_frame)
+
+        return buoy_mask_frame
 
     def process_contours(self, mask, frame, color, left_id, right_id, min_ref, max_ref):
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -213,10 +227,17 @@ class Camera():
         self.image_pub.publish(img_msg)
         self.masked_image_pub.publish(buoy_mask_msg)
 
+    def sort_buoys(self):
+        self.sorted_buoys = sorted(self.buoys_array, key=lambda buoy: buoy.limit if buoy else float('inf'))
+
+        print("Sorted buoys:")
+        for buoy in self.sorted_buoys:
+            if buoy:
+                print(f" - {buoy}")
 
 def main(args=None):
     rclpy.init(args=args)
-    node = Camera()
+    node = CameraTwoBuoys()
     rclpy.spin(node)
 
     rclpy.shutdown()

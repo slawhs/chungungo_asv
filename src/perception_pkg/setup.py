@@ -23,7 +23,8 @@ setup(
             "camera = perception_pkg.camera:main",
             "color_picker = perception_pkg.color_picker:main",
             "lidar = perception_pkg.lidar:main",
-            "buoy_tracker = perception_pkg.buoy_tracker:main"
+            "buoy_tracker = perception_pkg.buoy_tracker:main",
+            "camera_two_buoys = perception_pkg.camera_two_buoys:main",
         ],
     },
 )

@@ -44,12 +44,13 @@ class IMUVelocityController(Node):
         self.velocity_controller = PIDController(Kp=VELOCITY_KP, Ki=VELOCITY_KI, Kd=VELOCITY_KD, saturation=SATURATION, Ts=0.01)
         self.desired_vel = 0.0
         
-        self.linear_vel = 0.0
+        self.linear_vel= Vector3
+
         self.last_vel = 0.0
         self.last_time = time()
         self.last_acel = 0.0
         # Imu data
-        self.linear_acceleration = 0.0
+        self.linear_acceleration = Vector3()
 
     def set_desired_velocity(self, desired_velocity):
         """Set the desired velocity for the thrusters."""
@@ -59,8 +60,13 @@ class IMUVelocityController(Node):
     def imu_cb(self, imu_msg):
         # Revisar si el vector es el que corresponde.
         self.last_vel = self.linear_vel
-        self.linear_acceleration = imu_msg.linear_acceleration.y
-        self.linear_vel = self.linear_acceleration * (time() -self.last_time) + self.last_vel
+        self.linear_acceleration = imu_msg.linear_acceleration
+        # Conversion automatica KM/H
+        self.linear_vel.x = round(self.linear_acceleration.x * (time() -self.last_time) * 3.6, 3)
+        self.linear_vel.y = round(self.linear_acceleration.y * (time() -self.last_time) * 3.6, 3)
+        self.linear_vel.z = round(self.linear_acceleration.z * (time() -self.last_time) * 3.6, 3)
+        
+
         self.last_time = time()
 
         # self.get_logger().info(f"Linear Velocity: {self.linear_vel:.2f} m/s")
@@ -75,8 +81,10 @@ class IMUVelocityController(Node):
         # No estoy muy seguro de esto, hay que agregar un escalon?
         self.vel_msg.left_velocity = control_effort
         self.vel_msg.right_velocity = control_effort
+
         # self.get_logger().info(f"Linear Velocity: {self.linear_vel:.2f} m/s")
-        self.get_logger().info(f"Linear Velocity: {(self.linear_vel*3.6):.2f} km/h")
+        self.get_logger().info(f"Linear Velocity_x: ({(self.linear_vel.x):.2f}, {(self.linear_vel.y):.2f}, {(self.linear_vel.z):.2f}) km/h")
+
 
         # self.get_logger().info(f"Control Effort: {control_effort:.2f}")
         self.vel_pub.publish(self.vel_msg)

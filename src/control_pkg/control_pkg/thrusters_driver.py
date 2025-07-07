@@ -6,14 +6,12 @@ from rclpy.node import Node
 from chungungo_interfaces.srv import VelocityCommand
 
 from serial import Serial
-import time
-
-DEVICE_NAME = '/ttyUSB1'
-BAUD_RATE = 115200
 
 class Thrusters(Node):
     def __init__(self):
         super().__init__("Thrusters")
+
+        self.parameters_setup()
 
         # -------- Publishers, Subscribers Clients and Services --------
         self.vel_cmd_srv = self.create_service(VelocityCommand, '/vel_command', self.vel_command_cb)
@@ -25,8 +23,15 @@ class Thrusters(Node):
         self.serial_setup()
         self.get_logger().info("Setup compelted")
 
+    def parameters_setup(self):
+        self.declare_parameter("device_name", 'ttyUSB1')
+        self.declare_parameter("baud_rate", 115200)
+
+        self.device_name = self.get_parameter("device_name").value
+        self.baud_rate = self.get_parameter("baud_rate").value
+
     def serial_setup(self):
-        self.serial = Serial('/dev' + DEVICE_NAME, BAUD_RATE)
+        self.serial = Serial('/dev/' + self.device_name, self.baud_rate)
         if not self.serial.isOpen():
             self.get_logger().warning('Serial port is not open yet')
         self.get_logger().info('Serial port connected')
