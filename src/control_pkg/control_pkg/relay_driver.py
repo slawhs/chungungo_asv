@@ -10,9 +10,9 @@ class Relay(Node):
     def __init__(self):
         super().__init__("Relay")
 
-
         # -------- Publishers, Subscribers Clients and Services --------
         self.mode_sub = self.create_subscription(String, "/operation_mode", self.mode_cb, 10)
+
         # -------- Atributes --------
         self.gpio = lgpio.gpiochip_open(0)
         self.gpio_number = 17 
@@ -27,11 +27,11 @@ class Relay(Node):
     
     def turn_on(self):
         lgpio.gpio_write(self.gpio, self.gpio_number, 0)
-        self.get_logger().info("Relay turned ON")
+        
     
     def turn_off(self):
         lgpio.gpio_write(self.gpio, self.gpio_number, 1)
-        self.get_logger().info("Relay turned OFF")
+        self.get_logger().info("E-Stop ACTIVATED")
 
 def main(args=None):
     rclpy.init(args=args)
