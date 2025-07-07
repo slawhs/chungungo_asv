@@ -28,7 +28,7 @@ unsigned long ultimaMedicionFeedback = 0;
 float mot1_rpm = 0;
 float mot2_rpm = 0;
 bool ledState = false;
-const int water_threshold = 500;
+const int water_threshold = 2000;
 
 String msg;
 
@@ -284,6 +284,7 @@ void loop() {
         // mot2_rpm += 0.1;
         enc2_pulsos = 0;
         enc1_pulsos = 0;
+        ComprobarAgua();
         interrupts();
         add_rpm_value(motor1, mot1_rpm);  // Añadir el valor actual de RPM al array y calcular el promedio
         add_rpm_value(motor2, mot2_rpm);
@@ -302,7 +303,6 @@ void loop() {
         mot2_direccion(c2);
 
         /* LECTURA SENSOR AGUA*/
-        //ComprobarAgua();
         ultimaMedicion = medicionActual;
 
         /* FEEDBACK */
