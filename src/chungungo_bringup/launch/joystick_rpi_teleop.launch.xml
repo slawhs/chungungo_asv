@@ -9,5 +9,7 @@
     </node>
 
     <node pkg="control_pkg" exec="thrusters_velocity_mux"/>
+
+    <node pkg="control_pkg" exec="relay_driver"/>
     
 </launch>
