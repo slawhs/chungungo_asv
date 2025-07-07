@@ -66,7 +66,7 @@ class BuoyAvoidance(Node):
 
     def control_cb(self):
         if self.angle_control:
-            diff_velocity = self.angle_controller.pid(setpoint=0, feedback=self.angle_to_buoy)
+            diff_velocity = self.angle_controller.pid(setpoint=90, feedback=self.angle_to_buoy)
             self.publish_velocity(linear_velocity=BASE_VELOCITY, diff_velocity=diff_velocity)
         else:
             self.publish_velocity(linear_velocity=0, diff_velocity=0)
