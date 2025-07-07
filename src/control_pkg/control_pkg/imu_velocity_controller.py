@@ -21,7 +21,9 @@ import numpy as np
 VELOCITY_KP = 1.0
 VELOCITY_KI = 0.0
 VELOCITY_KD = 0.0
-SATURATION = 2.0
+MIN_SATURATION = -2.0
+MAX_SATURATION = 2.0
+
 
 
 class IMUVelocityController(Node):
@@ -41,7 +43,7 @@ class IMUVelocityController(Node):
 
         # PID Controller
         self.Ts = 0.01
-        self.velocity_controller = PIDController(Kp=VELOCITY_KP, Ki=VELOCITY_KI, Kd=VELOCITY_KD, saturation=SATURATION, Ts=0.01)
+        self.velocity_controller = PIDController(Kp=VELOCITY_KP, Ki=VELOCITY_KI, Kd=VELOCITY_KD, min_saturation=MIN_SATURATION,max_saturation=MAX_SATURATION, Ts=0.01)
         self.desired_vel = 0.0
         
         self.linear_vel= Vector3
@@ -61,16 +63,19 @@ class IMUVelocityController(Node):
         # Revisar si el vector es el que corresponde.
         self.last_vel = self.linear_vel
         self.linear_acceleration = imu_msg.linear_acceleration
+        self.delta_t = time() - self.last_time
         # Conversion automatica KM/H
-        self.linear_vel.x = round(self.linear_acceleration.x * (time() -self.last_time) * 3.6, 3)
-        self.linear_vel.y = round(self.linear_acceleration.y * (time() -self.last_time) * 3.6, 3)
-        self.linear_vel.z = round(self.linear_acceleration.z * (time() -self.last_time) * 3.6, 3)
+        self.linear_vel.x = round(self.linear_acceleration.x * (self.delta_t) * 3.6, 3)
+        self.linear_vel.y = round(self.linear_acceleration.y * (self.delta_t) * 3.6, 3)
+        self.linear_vel.z = round(self.linear_acceleration.z * (self.delta_t) * 3.6, 3)
+        self.get_logger().info(f"Linear Velocity_x: ({(self.linear_vel.x):.2f}, {(self.linear_vel.y):.2f}, {(self.linear_vel.z):.2f}) km/h")
+
         
 
         self.last_time = time()
 
         # self.get_logger().info(f"Linear Velocity: {self.linear_vel:.2f} m/s")
-        self.velocity_control()
+        # self.velocity_control()
 
 
 
