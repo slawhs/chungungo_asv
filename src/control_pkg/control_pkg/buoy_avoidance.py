@@ -14,12 +14,15 @@ DIST_KP = 25.0
 DIST_KI = 0.5
 DIST_KD = 0.0
 
-ANGLE_TH = 5
+ANGLE_TH = 7
 BASE_VELOCITY = 0.0
 
 class BuoyAvoidance(Node): 
     def __init__(self):
         super().__init__("BuoyAvoidance")
+
+        # -------- Parameters --------
+        self.parameters_setup()
 
         # -------- Publishers and Subscribers --------
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
@@ -48,6 +51,30 @@ class BuoyAvoidance(Node):
 
         self.valid_control = False
         self.angle_control = False
+
+    def parameters_setup(self):
+        self.declare_parameter("angle_kp", 5.0)
+        self.declare_parameter("angle_ki", 1.0)
+        self.declare_parameter("angle_kd", 0.0)
+
+        self.declare_parameter("dist_kp", 25.0)
+        self.declare_parameter("dist_ki", 1.0)
+        self.declare_parameter("dist_kd", 0.0)
+
+        self.declare_parameter("angle_th", 7)
+        self.declare_parameter("base_velocity", 0.0)
+
+        # Load parameters
+        self.angle_kp = self.get_parameter("angle_kp").value
+        self.angle_ki = self.get_parameter("angle_ki").value
+        self.angle_kd = self.get_parameter("angle_kd").value
+
+        self.dist_kp = self.get_parameter("dist_kp").value
+        self.dist_ki = self.get_parameter("dist_ki").value
+        self.dist_kd = self.get_parameter("dist_kd").value
+
+        self.angle_th = self.get_parameter("angle_th").value
+        self.base_velocity = self.get_parameter("base_velocity").value
 
     def centroids_cb(self, msg):
         self.buoy_1 = msg.centroid_1 
