@@ -1,7 +1,8 @@
 class Buoy():
-    def __init__(self, id: int, color: str, limit: int, counter: int = 0):
+    def __init__(self, id: int, color: str, centroid: tuple, limit: int, counter: int = 0):
         self.id = id
         self.color = color
+        self.centroid = centroid
 
         self.limit = limit
         self.limit_counter = counter

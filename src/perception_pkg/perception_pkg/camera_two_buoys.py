@@ -157,9 +157,11 @@ class Camera():
                 approx = cv2.approxPolyDP(contour, epsilon, True)
                 M = cv2.moments(approx)
                 if M["m00"] == 0:
-                    continue
-                cX = int(M["m10"] / M["m00"])
-                cY = int(M["m01"] / M["m00"])
+                    cX = 0
+                    cY = 0
+                else:
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
                 x = approx[:, 0, 0]
                 min_x = x.min()
                 max_x = x.max()
@@ -171,10 +173,10 @@ class Camera():
 
                 if min_x <= min_ref[0]:
                     min_ref[0] = min_x
-                    self.set_buoys(left_id, color, min_x)
+                    self.set_buoys(left_id, color, (cX, cY), min_x)
                 elif max_x >= max_ref[0]:
                     max_ref[0] = max_x
-                    self.set_buoys(right_id, color, max_x)
+                    self.set_buoys(right_id, color, (cX, cY), max_x)
 
                 if self.debug:
                     cv2.drawContours(frame, [approx], -1, (255, 0, 0), 2)
@@ -192,8 +194,8 @@ class Camera():
             if buoy.limit_counter >= self.max_iterations:
                 self.buoys_array[id] = None
 
-    def set_buoys(self, id, color, limit):
-        buoy = Buoy(id, color, limit)
+    def set_buoys(self, id, color, centroid, limit):
+        buoy = Buoy(id, color, centroid, limit)
         self.buoys_array[id] = buoy
 
     def publish_color(self, color):
