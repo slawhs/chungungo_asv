@@ -2,20 +2,9 @@
 
 import rclpy
 from rclpy.node import Node
-from chungungo_interfaces.msg import BuoysDetected, CloseBuoysCentroids, ThrustersVelocity
-from control_pkg.pid_controller import PIDController
+from chungungo_interfaces.msg import BuoysDetected, CloseBuoysCentroids, GoalCentroid
 import numpy as np
 
-ANGLE_KP = 5.0
-ANGLE_KI = 1.0
-ANGLE_KD = 0.0
-
-DIST_KP = 25.0
-DIST_KI = 0.5
-DIST_KD = 0.0
-
-ANGLE_TH = 7
-BASE_VELOCITY = 0.0
 
 class BuoyAvoidance(Node): 
     def __init__(self):
@@ -27,60 +16,111 @@ class BuoyAvoidance(Node):
         # -------- Publishers and Subscribers --------
         self.buoys_sub = self.create_subscription(BuoysDetected, "/buoys_detected", self.buoys_cb, 1)  # Recieves a list with maximum 4 segmented buoys sorted from left to right
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)  # Recieves the two closest obstacles centroids from the LiDAR   
-        self.setpoint_pub = self.publisher(CloseBuoysCentroids, "/goal_centroid", self.centroids_cb, 1)
+
+        self.goal_pub = self.publisher(GoalCentroid, "/goal_centroid", 1)
+
+        # -------- Atributes --------
+        self.buoys_array = [None] * 4  # Array to store the four detected buoys
+        self.centroids_array = [None] * 2  # Array to store the two closest centroids}
+        self.portal = [None] * 2
+        self.portal_colors = [None] * 2
+
+        timer_period = 0.01  # seconds
+        self.timer = self.create_timer(timer_period, self.goal_centroid_cb)
 
     def parameters_setup(self):
        pass
 
+    def buoys_cb(self, buoys_msg):
+        # Buoy_msg contains four Buoy messages, each with: id, color, centroid_x and angle
+        self.buoys_array = [None] * 4  # Reset the array to None
+
+        if buoys_msg[0].id != None:
+            self.buoys_array[0] = buoys_msg.buoy_1
+        if buoys_msg[1] != None:
+            self.buoys_array[1] = buoys_msg.buoy_2
+        if buoys_msg[2] != None:
+            self.buoys_array[2] = buoys_msg.buoy_3
+        if buoys_msg[3] != None:
+            self.buoys_array[3] = buoys_msg.buoy_4        
+
     def centroids_cb(self, msg):
-        self.buoy_1 = msg.centroid_1 
-        self.buoy_2 = msg.centroid_2
-
-        invalid_buoy_1 = (np.isnan(self.buoy_1.range).any()) or (np.isnan(self.buoy_1.theta).any())
-
-        if (self.buoy_1 is None) or invalid_buoy_1:
-            self.valid_control = False
-            self.distance_to_buoy = 0.0
-            self.angle_to_buoy = 0.0
-
+        if msg.centroid_1.theta > msg.centroid_2.theta:
+            self.centroids_array[0] = msg.centroid_1
+            self.centroids_array[1] = msg.centroid_2
         else:
-            self.valid_control = True
-            
-            self.distance_to_buoy = self.buoy_1.range
-            self.angle_to_buoy = self.buoy_1.theta
+            self.centroids_array[0] = msg.centroid_2
+            self.centroids_array[1] = msg.centroid_1
 
-            if np.abs(self.angle_to_buoy) > ANGLE_TH:
-                self.angle_control = True
-            else:
-                self.angle_control = False
+    def goal_centroid_cb(self):
+        
+        camera_detected_two_buoys = self.buoys_array[0] is not None and self.buoys_array[1] is not None
+        lidar_detected_two_centroids = self.centroids_array[0] is not None and self.centroids_array[1] is not None
 
-            # self.get_logger().info(f"Closest buoy is at {self.buoy_1.range:.3f} meters with angle {self.buoy_1.theta:.3f}")
+        if camera_detected_two_buoys and lidar_detected_two_centroids:
+            # If both camera and LiDAR detected two buoys and two centroids, we can proceed to match them
+            self.portal_colors = self.match_buoys_to_centroids()
 
-    def control_cb(self):
-        if self.valid_control:
+            valid_portal = self.check_portal_colors(self.portal)
 
-            angular_velocity = self.angle_controller.pid(setpoint=self.angular_setpoint, feedback=self.angle_to_buoy)
-            linear_velocity = self.distance_controller.pid(setpoint=self.linear_setpoint, feedback=self.distance_to_buoy)
+            if valid_portal:
+                goal_distance, goal_angle = self.set_goal(self.centroids_array)
+                self.publish_centroids(goal_distance, goal_angle)
 
-            if self.angle_control: 
-                self.publish_velocity(linear_velocity=linear_velocity, angular_velocity=angular_velocity)
-            else:
-                self.publish_velocity(linear_velocity=linear_velocity, angular_velocity=0)
-
-        else:
-            self.publish_velocity(linear_velocity=0, angular_velocity=0)
+        if self.buoys_array[0] is not None and self.buoys_array[1] is not None:
     
+            # Calculate the centroid of the two closest buoys
+            centroid_x = (self.buoys_array[0].centroid_x + self.buoys_array[1].centroid_x) / 2.0
+            centroid_y = (self.buoys_array[0].angle + self.buoys_array[1].angle) / 2.0
 
-    def publish_velocity(self, linear_velocity, angular_velocity):
-        left_velocity = linear_velocity + angular_velocity
-        right_velocity = linear_velocity - angular_velocity
+            # Create a new CloseBuoysCentroids message
+            msg = CloseBuoysCentroids()
+            msg.centroid_1.x = centroid_x
+            msg.centroid_1.y = centroid_y
+            msg.centroid_2.x = 0.0
 
-        self.get_logger().info(f"Linear Vel = {linear_velocity:.3f} | Angular Vel = {angular_velocity:.3f}\nL_Vel = {left_velocity:.3f} | R_Vel = {right_velocity:.3f}")
+    def match_buoys_to_centroids(self):
+        # For the each centroid, find the closest buoy (by angle) to that centroid, storing the centroids
+        closest_buoy_1 = min(self.buoys_array, key=lambda buoy: abs(buoy.angle - self.centroids_array[0].theta))
+        closest_buoy_2 = min(self.buoys_array, key=lambda buoy: abs(buoy.angle - self.centroids_array[1].theta))
 
-        msg = ThrustersVelocity()
-        msg.left_velocity = float(left_velocity)
-        msg.right_velocity = float(right_velocity)
-        self.buoy_distance_vel_pub.publish(msg)
+        portal_colors = [closest_buoy_1.color, closest_buoy_2.color]
+
+        return portal_colors
+
+    def check_portal_colors(self, portal_colors):
+        expected_colors = ["red", "green"]
+
+        return portal_colors == expected_colors
+
+    def set_goal(self, portal_centroids):
+        # Calculate the angle to the center of the portal
+        left_buoy = portal_centroids[0]
+        right_buoy = portal_centroids[1]
+
+        half_to_left_angle_num = -(left_buoy.range**2) + (right_buoy.range**2)
+        half_to_left_angle_den = np.sqrt(left_buoy.range**4 + right_buoy.range**4 - 2 * (left_buoy.range**2) * (right_buoy.range**2) * np.cos(2*(left_buoy.theta - right_buoy.theta)))
+ 
+        half_to_left_angle = np.arccos(half_to_left_angle_num / half_to_left_angle_den)
+        alpha = left_buoy.theta - right_buoy.theta
+        half_to_right_angle = alpha - half_to_left_angle
+
+        if abs(left_buoy.angle) > abs(right_buoy.angle):
+            goal_angle = left_buoy.theta - half_to_left_angle
+        else:
+            goal_angle = right_buoy.theta - half_to_right_angle
+
+        goal_distance = 12.0
+
+        return goal_distance, goal_angle
+
+    def publish_centroids(self, goal_distance, goal_angle):
+        msg = CloseBuoysCentroids()
+        msg.centroid_1.range = goal_distance
+        msg.centroid_1.theta = goal_angle
+
+        self.goal_pub.publish(msg)
+        self.get_logger().info(f"Goal Centroid: {msg.centroid_1.x:.3f}, {msg.centroid_1.y:.3f}")
 
 
 def main(args=None):
