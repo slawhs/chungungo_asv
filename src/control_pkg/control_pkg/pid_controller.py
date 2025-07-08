@@ -29,7 +29,7 @@ class PIDController():
         if control_effort > 0:
             control_effort = np.clip(control_effort, self.min_saturation, self.max_saturation)
         else:
-            control_effort = np.clip(control_effort, -self.max_saturation, self.min_saturation)
+            control_effort = np.clip(control_effort, -self.max_saturation, -self.min_saturation)
 
         # Shift states for next iteration
         self.error_prev_prev = self.error_prev
