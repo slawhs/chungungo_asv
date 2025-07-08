@@ -73,7 +73,7 @@ class CameraTwoBuoys(Node):
         diagonal_length = np.sqrt(camera_shape[0]**2 + camera_shape[1]**2)
 
         self.pix_grad_ratio = diagonal_length / camera_FOV
-        self.center_pix = self.camera_shape[0] / 2
+        self.center_pix = camera_shape[0] / 2
 
         # -------- Setup Routines --------
         self.setup_camera()
@@ -165,9 +165,9 @@ class CameraTwoBuoys(Node):
 
         buoy_mask_frame = cv2.bitwise_or(red_mask_frame, green_mask_frame)
     
-        if self.debug:
-            cv2.imshow('Camera', cv_frame)
-            cv2.imshow('MaskedBuoys', buoy_mask_frame)
+        # if self.debug:
+        #     cv2.imshow('Camera', cv_frame)
+        #     cv2.imshow('MaskedBuoys', buoy_mask_frame)
 
         return buoy_mask_frame
 

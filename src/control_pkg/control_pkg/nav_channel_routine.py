@@ -6,9 +6,9 @@ from chungungo_interfaces.msg import BuoysDetected, CloseBuoysCentroids, GoalCen
 import numpy as np
 
 
-class BuoyAvoidance(Node): 
+class NavChannelRoutine(Node): 
     def __init__(self):
-        super().__init__("BuoyAvoidance")
+        super().__init__("NavChannelRoutine")
 
         # -------- Parameters --------
         self.parameters_setup()
@@ -17,7 +17,7 @@ class BuoyAvoidance(Node):
         self.buoys_sub = self.create_subscription(BuoysDetected, "/buoys_detected", self.buoys_cb, 1)  # Recieves a list with maximum 4 segmented buoys sorted from left to right
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)  # Recieves the two closest obstacles centroids from the LiDAR   
 
-        self.goal_pub = self.publisher(GoalCentroid, "/goal_centroid", 1)
+        self.goal_pub = self.create_publisher(GoalCentroid, "/goal_centroid", 1)
 
         # -------- Atributes --------
         self.buoys_array = [None] * 4  # Array to store the four detected buoys
@@ -115,9 +115,9 @@ class BuoyAvoidance(Node):
         return goal_distance, goal_angle
 
     def publish_centroids(self, goal_distance, goal_angle):
-        msg = CloseBuoysCentroids()
-        msg.centroid_1.range = goal_distance
-        msg.centroid_1.theta = goal_angle
+        msg = GoalCentroid()
+        msg.goal_centroid.range = goal_distance
+        msg.goal_centroid.theta = goal_angle
 
         self.goal_pub.publish(msg)
         self.get_logger().info(f"Goal Centroid: {msg.centroid_1.x:.3f}, {msg.centroid_1.y:.3f}")
@@ -125,7 +125,7 @@ class BuoyAvoidance(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = BuoyAvoidance()
+    node = NavChannelRoutine()
     rclpy.spin(node)
     rclpy.shutdown()
     

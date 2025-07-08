@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CloseBuoysCentroids.msg"
   "msg/ThrustersVelocity.msg"
   "msg/Buoys.msg"
+  "msg/GoalCentroid.msg"
   "msg/BuoysDetected.msg"
   "srv/VelocityCommand.srv"
   "srv/BlindVelocityCommand.srv"
