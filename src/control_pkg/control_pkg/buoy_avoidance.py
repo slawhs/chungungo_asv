@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
-from chungungo_interfaces.msg import CloseBuoysCentroids, ThrustersVelocity
+from chungungo_interfaces.msg import GoalCentroid, ThrustersVelocity
 from control_pkg.pid_controller import PIDController
 import numpy as np
 
@@ -17,14 +17,13 @@ class BuoyAvoidance(Node):
         self.parameters_setup()
 
         # -------- Publishers and Subscribers --------
-        self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
+        self.centroids_sub = self.create_subscription(GoalCentroid, "/goal_centroid", self.centroids_cb, 1)
         self.operation_mode_sub = self.create_subscription(String, "/operation_mode", self.mode_cb, 10)
         self.buoy_distance_vel_pub = self.create_publisher(ThrustersVelocity, '/buoy_distance_velocity', 10)
 
         # -------- Atributes --------
         # Detection
-        self.buoy_1 = None
-        self.buoy_2 = None
+        self.goal_buoy = None
         
         timer_period = 0.01 
         self.timer = self.create_timer(timer_period, self.control_cb)
@@ -77,17 +76,16 @@ class BuoyAvoidance(Node):
     def mode_cb(self, mode_msg):
         self.operation_mode = mode_msg.data
 
-        if self.operation_mode == "buoy":
+        if self.operation_mode == "buoy" or "nav_channel":
             self.reset_errors(self.angle_controller)
             self.reset_errors(self.distance_controller)
 
     def centroids_cb(self, msg):
-        self.buoy_1 = msg.centroid_1 
-        self.buoy_2 = msg.centroid_2
+        self.goal_buoy = msg.centroid_1 
 
-        invalid_buoy_1 = (np.isnan(self.buoy_1.range).any()) or (np.isnan(self.buoy_1.theta).any())
+        invalid_goal_buoy = (np.isnan(self.goal_buoy.range).any()) or (np.isnan(self.goal_buoy.theta).any())
 
-        if (self.buoy_1 is None) or invalid_buoy_1:
+        if (self.goal_buoy is None) or invalid_goal_buoy:
             self.valid_control = False
             self.distance_to_buoy = 0.0
             self.angle_to_buoy = 0.0
@@ -95,8 +93,8 @@ class BuoyAvoidance(Node):
         else:
             self.valid_control = True
             
-            self.distance_to_buoy = self.buoy_1.range
-            self.angle_to_buoy = self.buoy_1.theta
+            self.distance_to_buoy = self.goal_buoy.range
+            self.angle_to_buoy = self.goal_buoy.theta
 
             if np.abs(self.angle_to_buoy) > self.angle_th:
                 self.angle_control = True
