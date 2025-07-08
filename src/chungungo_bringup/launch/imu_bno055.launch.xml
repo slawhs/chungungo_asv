@@ -1,9 +1,6 @@
 <launch>
 
-    <include file="$(find-pkg-share bno055)/launch/bno055.launch.py" />
-    <node pkg="$(find-pkg-share bno055)" exec="bno055">
-         ros-args="--params-file $(find-pkg-share bno055)/params/bno055_params.yaml"
-    </node>
-    <node pkg="control_pkg" exec="imu_velocity_controller"/>
+    <node pkg="$(find-pkg-share bno055)" exec="bno055" ros-args="--params-file $(find-pkg-share bno055)/params/bno055_params.yaml"/>
+    
 
 </launch>
