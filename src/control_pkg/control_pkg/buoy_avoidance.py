@@ -2,20 +2,12 @@
 
 import rclpy
 from rclpy.node import Node
+
+from std_msgs.msg import String
 from chungungo_interfaces.msg import CloseBuoysCentroids, ThrustersVelocity
 from control_pkg.pid_controller import PIDController
 import numpy as np
 
-ANGLE_KP = 5.0
-ANGLE_KI = 1.0
-ANGLE_KD = 0.0
-
-DIST_KP = 25.0
-DIST_KI = 0.5
-DIST_KD = 0.0
-
-ANGLE_TH = 7
-BASE_VELOCITY = 0.0
 
 class BuoyAvoidance(Node): 
     def __init__(self):
@@ -26,6 +18,7 @@ class BuoyAvoidance(Node):
 
         # -------- Publishers and Subscribers --------
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
+        self.operation_mode_sub = self.create_subscription(String, "/operation_mode", self.mode_cb, 10)
         self.buoy_distance_vel_pub = self.create_publisher(ThrustersVelocity, '/buoy_distance_velocity', 10)
 
         # -------- Atributes --------
@@ -37,8 +30,8 @@ class BuoyAvoidance(Node):
         self.timer = self.create_timer(timer_period, self.control_cb)
 
         # PID Controller
-        self.angle_controller = PIDController(Kp=ANGLE_KP, Ki=ANGLE_KI, Kd=ANGLE_KD, min_saturation=0, max_saturation=100, Ts=0.01)
-        self.distance_controller = PIDController(Kp=DIST_KP, Ki=DIST_KI, Kd=DIST_KD, min_saturation=100, max_saturation=1050, Ts=0.01)
+        self.angle_controller = PIDController(Kp=self.angle_kp, Ki=self.angle_ki, Kd=self.angle_kd, min_saturation=100, max_saturation=300, Ts=0.01)
+        self.distance_controller = PIDController(Kp=self.dist_kp, Ki=self.dist_ki, Kd=self.dist_ki, min_saturation=100, max_saturation=1050, Ts=0.01)
 
         self.distance_to_buoy = 0.0
         self.angle_to_buoy = 0.0
@@ -46,11 +39,13 @@ class BuoyAvoidance(Node):
         self.linear_vel = 0.0
         self.angular_vel = 0.0
 
-        self.angular_setpoint = 0.0
-        self.linear_setpoint = 1.5
+        self.angular_setpoint = 90
+        self.linear_setpoint = 1.0
 
         self.valid_control = False
         self.angle_control = False
+        self.distance_control = False
+        self.operation_mode = None
 
     def parameters_setup(self):
         self.declare_parameter("angle_kp", 5.0)
@@ -62,6 +57,7 @@ class BuoyAvoidance(Node):
         self.declare_parameter("dist_kd", 0.0)
 
         self.declare_parameter("angle_th", 7)
+        self.declare_parameter("dist_th", 0.3)
         self.declare_parameter("base_velocity", 0.0)
 
         # Load parameters
@@ -74,7 +70,16 @@ class BuoyAvoidance(Node):
         self.dist_kd = self.get_parameter("dist_kd").value
 
         self.angle_th = self.get_parameter("angle_th").value
+        self.dist_th = self.get_parameter("dist_th").value
+
         self.base_velocity = self.get_parameter("base_velocity").value
+
+    def mode_cb(self, mode_msg):
+        self.operation_mode = mode_msg.data
+
+        if self.operation_mode == "buoy":
+            self.reset_errors(self.angle_controller)
+            self.reset_errors(self.distance_controller)
 
     def centroids_cb(self, msg):
         self.buoy_1 = msg.centroid_1 
@@ -93,26 +98,45 @@ class BuoyAvoidance(Node):
             self.distance_to_buoy = self.buoy_1.range
             self.angle_to_buoy = self.buoy_1.theta
 
-            if np.abs(self.angle_to_buoy) > ANGLE_TH:
+            if np.abs(self.angle_to_buoy) > self.angle_th:
                 self.angle_control = True
             else:
                 self.angle_control = False
+                self.reset_errors(self.angle_controller)
+
+            if np.abs(self.distance_to_buoy) > self.dist_th:
+                self.distance_control = True
+            else:
+                self.distance_control = False
+                self.reset_errors(self.distance_controller)
+
 
             # self.get_logger().info(f"Closest buoy is at {self.buoy_1.range:.3f} meters with angle {self.buoy_1.theta:.3f}")
 
     def control_cb(self):
+        
         if self.valid_control:
+            if self.angle_control:
+                angular_velocity = self.angle_controller.pid(setpoint=self.angular_setpoint, feedback=self.angle_to_buoy)
+                linear_velocity = 0.0
+            
+            elif not self.angle_control:
+                if self.distance_control:
+                    angular_velocity = 0.0
+                    linear_velocity = -1 * self.distance_controller.pid(setpoint=self.linear_setpoint, feedback=self.distance_to_buoy)
+                elif not self.distance_control:
+                    angular_velocity = 0.0
+                    linear_velocity = 0.0
 
-            angular_velocity = self.angle_controller.pid(setpoint=self.angular_setpoint, feedback=self.angle_to_buoy)
-            linear_velocity = self.distance_controller.pid(setpoint=self.linear_setpoint, feedback=self.distance_to_buoy)
-
-            if self.angle_control: 
-                self.publish_velocity(linear_velocity=linear_velocity, angular_velocity=angular_velocity)
-            else:
-                self.publish_velocity(linear_velocity=linear_velocity, angular_velocity=0)
+            self.publish_velocity(linear_velocity=linear_velocity, angular_velocity=angular_velocity)
 
         else:
             self.publish_velocity(linear_velocity=0, angular_velocity=0)
+
+    def reset_errors(self, controller):
+        controller.control_prev = 0.0
+        controller.error_prev = 0.0
+        controller.error_prev_prev = 0.0
     
 
     def publish_velocity(self, linear_velocity, angular_velocity):
