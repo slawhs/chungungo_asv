@@ -242,8 +242,8 @@ class CameraTwoBuoys(Node):
     def publish_buoys(self):
         msg = BuoysDetected()
 
-        for i in range(len(self.buoys_array)):
-            buoy = self.buoys_array[i]
+        for i in range(len(self.sorted_buoys)):
+            buoy = self.sorted_buoys[i]
             if i == 0:
                 if buoy is not None:
                     msg.buoy_1.id = int(buoy.get_id())
@@ -251,7 +251,7 @@ class CameraTwoBuoys(Node):
                     msg.buoy_1.centroid_x = float(buoy.centroid_x)
                     msg.buoy_1.angle = float(buoy.get_angle())
                 else:
-                    msg.buoy_1.id = int(1)
+                    msg.buoy_1.id = int(-1)
                     msg.buoy_1.color = "None"
                     msg.buoy_1.centroid_x = float('inf')
                     msg.buoy_1.angle = float('inf')
@@ -262,7 +262,7 @@ class CameraTwoBuoys(Node):
                     msg.buoy_2.centroid_x = float(buoy.centroid_x)
                     msg.buoy_2.angle = float(buoy.get_angle())
                 else:
-                    msg.buoy_2.id = int(2)
+                    msg.buoy_2.id = int(-1)
                     msg.buoy_2.color = "None"
                     msg.buoy_2.centroid_x = float('inf')
                     msg.buoy_2.angle = float('inf')
@@ -273,7 +273,7 @@ class CameraTwoBuoys(Node):
                     msg.buoy_3.centroid_x = float(buoy.centroid_x)
                     msg.buoy_3.angle = float(buoy.get_angle())
                 else:
-                    msg.buoy_3.id = int(3)
+                    msg.buoy_3.id = int(-1)
                     msg.buoy_3.color = "None"
                     msg.buoy_3.centroid_x = float('inf')
                     msg.buoy_3.angle = float('inf')
@@ -284,7 +284,7 @@ class CameraTwoBuoys(Node):
                     msg.buoy_4.centroid_x = float(buoy.centroid_x)
                     msg.buoy_4.angle = float(buoy.get_angle())
                 else:
-                    msg.buoy_4.id = int(4)
+                    msg.buoy_4.id = int(-1)
                     msg.buoy_4.color = "None"
                     msg.buoy_4.centroid_x = float('inf')
                     msg.buoy_4.angle = float('inf')
