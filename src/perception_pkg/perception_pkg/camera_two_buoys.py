@@ -68,20 +68,25 @@ class CameraTwoBuoys(Node):
 
         self.initial_time = time()
 
-        self.camera_FOV = 55 # Camera diagonal field of view in degrees
-        self.camera_shape = (640, 480)
+        camera_FOV = 55 # Camera diagonal field of view in degrees
+        camera_shape = (640, 480)
+        diagonal_length = np.sqrt(camera_shape[0]**2 + camera_shape[1]**2)
+
+        self.pix_grad_ratio = diagonal_length / camera_FOV
+        self.center_pix = self.camera_shape[0] / 2
 
         # -------- Setup Routines --------
         self.setup_camera()
 
 
     def setup_camera(self):
-        self.cap = cv2.VideoCapture(self.n_cam, cv2.CAP_V4L2)
+        self.cap = cv2.VideoCapture(self.n_cam, cv2.CAP_V4L)
         if not self.cap.isOpened():
             self.get_logger().error("Camera could not be opened")
-        self.bridge = CvBridge()
-        self.cap.read()
-        self.get_logger().info("Camera initialized successfully")
+        else:
+            self.bridge = CvBridge()
+            self.cap.read()
+            self.get_logger().info("Camera initialized successfully")
 
     def detect_cb(self, msg):
         self.detect = msg.data
@@ -297,12 +302,8 @@ class CameraTwoBuoys(Node):
 
     def calculate_angle(self, x):
         # Calculate the angle of the buoy based on its x position in the camera frame
-        diagonal_length = np.sqrt(self.camera_shape[0]**2 + self.camera_shape[1]**2)
-        pix_grad_ratio = diagonal_length / self.camera_FOV
-
-        center_pix = self.camera_shape[0] / 2
-        angle = (x - center_pix) / pix_grad_ratio
-
+        angle = (self.center_pix - x) / self.pix_grad_ratio
+        
         return angle
 
 def main(args=None):
