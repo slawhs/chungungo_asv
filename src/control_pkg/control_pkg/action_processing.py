@@ -34,6 +34,8 @@ class ActionProcessing(Node):
             self.mode = "joystick"
         elif joy_msg.buttons[4] == 1 and joy_msg.buttons[2] == 1:  # L1 + B
             self.mode = "buoy"
+        elif joy_msg.buttons[4] == 1 and joy_msg.buttons[5] == 1 and joy_msg.axes[4] == 1.0:  # L1 + R1 + Left Arrow
+            self.mode = "nav_channel"
 
         if self.last_joy_msg != joy_msg:
             mode_msg = String()
