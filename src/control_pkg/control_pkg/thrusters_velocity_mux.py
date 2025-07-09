@@ -60,6 +60,11 @@ class ThrustersVelMux(Node):
         elif self.mode == "buoy":
             self.request.left_velocity = self.buoy_dist_left_vel
             self.request.right_velocity = self.buoy_dist_right_vel
+        
+        elif self.mode == "nav_channel":
+            # Navigation channel velocity
+            self.request.left_velocity = self.buoy_dist_left_vel
+            self.request.right_velocity = self.buoy_dist_right_vel
 
         elif self.mode == "standby":
             self.request.left_velocity = 0.0
