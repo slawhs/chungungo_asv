@@ -21,12 +21,11 @@ class JoystickVelocity(Node):
         # -------- Setup Routines --------
 
     def joy_cb(self, joy_msg):
-        if joy_msg.buttons[5] == 1:  # R1 button pressed
-            self.vel_msg.left_velocity = joy_msg.axes[1] * 1050.0
-            self.vel_msg.right_velocity = joy_msg.axes[3] * 1050.0
+        self.vel_msg.left_velocity = joy_msg.axes[1] * 1050.0
+        self.vel_msg.right_velocity = joy_msg.axes[3] * 1050.0
         
-            # Publish the converted values
-            self.vel_pub.publish(self.vel_msg)
+        # Publish the converted values
+        self.vel_pub.publish(self.vel_msg)
 
         
 def main(args=None):
