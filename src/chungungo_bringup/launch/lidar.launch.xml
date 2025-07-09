@@ -24,7 +24,7 @@
         <param name="eps" value="$(var eps)"/>
     </node>
 
-    <node pkg="perception_pkg" exec="buoy_tracker"/>
+    <!-- <node pkg="perception_pkg" exec="buoy_tracker"/> -->
     
     <node pkg="tf2_ros" exec="static_transform_publisher" name="laser_to_lidar" args="--x 0.0 --y 0.0 --z 0.0 --roll 0.0 --pitch 0.0 --yaw 3.1457 --frame-id laser --child-frame-id lidar"/>
 
