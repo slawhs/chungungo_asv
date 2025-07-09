@@ -24,7 +24,7 @@ setup(
             "thrusters_driver = control_pkg.thrusters_driver:main",
             "thrusters_velocity_mux = control_pkg.thrusters_velocity_mux:main",
             "action_processing = control_pkg.action_processing:main",
-            "buoy_avoidance = control_pkg.buoy_avoidance:main",
+            "distance_buoy_controller = control_pkg.distance_buoy_controller:main",
             "imu_velocity_controller = control_pkg.imu_velocity_controller:main",
             "relay_driver = control_pkg.relay_driver:main",
             "nav_channel_routine = control_pkg.nav_channel_routine:main"
