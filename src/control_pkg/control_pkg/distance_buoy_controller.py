@@ -9,9 +9,9 @@ from control_pkg.pid_controller import PIDController
 import numpy as np
 
 
-class BuoyAvoidance(Node): 
+class DistanceBuoyController(Node): 
     def __init__(self):
-        super().__init__("BuoyAvoidance")
+        super().__init__("DistanceBuoyController")
 
         # -------- Parameters --------
         self.parameters_setup()
@@ -151,7 +151,7 @@ class BuoyAvoidance(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = BuoyAvoidance()
+    node = DistanceBuoyController()
     rclpy.spin(node)
     rclpy.shutdown()
     
