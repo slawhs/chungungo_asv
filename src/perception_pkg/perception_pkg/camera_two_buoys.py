@@ -21,26 +21,11 @@ class CameraTwoBuoys(Node):
     def __init__(self):
         super().__init__("CameraTwoBuoys")
 
-        # -------- Parameters Setup --------
-        self.declare_parameter("n_cam", 2)
-        self.declare_parameter("buoy_area_th", 200.0)
-        self.declare_parameter("max_iterations", 10)
-        self.declare_parameter("debug", True)
-
-        self.n_cam = self.get_parameter("n_cam").value
-        self.buoy_area_th = self.get_parameter("buoy_area_th").value
-        self.max_iterations = self.get_parameter("max_iterations").value
-        self.debug = self.get_parameter("debug").value
+        # -------- Parameters --------
+        self.paramters_setup()
 
         # -------- Publishers and Subscribers --------
-        self.image_pub = self.create_publisher(Image, "/camera", 10)
-        self.masked_image_pub = self.create_publisher(Image, "/masked_buoys", 10)
-        self.color_pub = self.create_publisher(String, "/color_detection", 10)
-        self.buoys_pub = self.create_publisher(BuoysDetected, "/buoys_detected", 10)
-
-        self.detect_sub = self.create_subscription(Bool, "/detect_order", self.detect_cb, 10)
-        self.red_hsv_sub = self.create_subscription(HSVColor, "/color_picker/red", self.update_thresholds_cb, 1)
-        self.green_hsv_sub = self.create_subscription(HSVColor, "/color_picker/green", self.update_thresholds_cb, 1)
+        self.interfaces_setup()
 
         # -------- Atributes --------
         timer_period = 0.1  # Segundos
@@ -78,6 +63,26 @@ class CameraTwoBuoys(Node):
         # -------- Setup Routines --------
         self.setup_camera()
 
+    def paramters_setup(self):
+        self.declare_parameter("n_cam", 2)
+        self.declare_parameter("buoy_area_th", 200.0)
+        self.declare_parameter("max_iterations", 10)
+        self.declare_parameter("debug", True)
+
+        self.n_cam = self.get_parameter("n_cam").value
+        self.buoy_area_th = self.get_parameter("buoy_area_th").value
+        self.max_iterations = self.get_parameter("max_iterations").value
+        self.debug = self.get_parameter("debug").value
+
+    def interfaces_setup(self):
+        self.image_pub = self.create_publisher(Image, "/camera", 10)
+        self.masked_image_pub = self.create_publisher(Image, "/masked_buoys", 10)
+        self.color_pub = self.create_publisher(String, "/color_detection", 10)
+        self.buoys_pub = self.create_publisher(BuoysDetected, "/buoys_detected", 10)
+
+        self.detect_sub = self.create_subscription(Bool, "/detect_order", self.detect_cb, 10)
+        self.red_hsv_sub = self.create_subscription(HSVColor, "/color_picker/red", self.update_thresholds_cb, 1)
+        self.green_hsv_sub = self.create_subscription(HSVColor, "/color_picker/green", self.update_thresholds_cb, 1)
 
     def setup_camera(self):
         self.cap = cv2.VideoCapture(self.n_cam, cv2.CAP_V4L)
@@ -103,6 +108,7 @@ class CameraTwoBuoys(Node):
 
         if self.debug:
             self.buoy_status()
+            self.publish_buoys()
 
         cv2.waitKey(1)
 
@@ -240,6 +246,8 @@ class CameraTwoBuoys(Node):
         self.masked_image_pub.publish(buoy_mask_msg)
 
     def publish_buoys(self):
+        # self.get_logger().info("Publishing buoys status")
+
         msg = BuoysDetected()
 
         for i in range(len(self.sorted_buoys)):
