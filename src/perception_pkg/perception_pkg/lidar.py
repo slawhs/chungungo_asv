@@ -89,8 +89,8 @@ class Lidar(Node):
         
     def filter_polar_samples(self, raw_samples):
         #? Filter only front samples
-        leftmost_angle = int(round(N_SAMPLES * 3/4))
-        rightmost_angle = int(round(N_SAMPLES * 1/4))
+        leftmost_angle = int(round(N_SAMPLES * 300/360))
+        rightmost_angle = int(round(N_SAMPLES * 60/360))
 
         front_samples = np.vstack((raw_samples[leftmost_angle:], raw_samples[:rightmost_angle+1]))
         
