@@ -1,6 +1,11 @@
 <launch>
 
-    <node pkg="perception_pkg" exec="camera" />
+    <arg name="n_cam" default="0"/>
+
+    <node pkg="perception_pkg" exec="camera_two_buoys">
+        <param name="n_cam" value="$(var n_cam)" />
+    </node>
+
     <node pkg="perception_pkg" exec="color_picker" />
 
 </launch>
