@@ -15,7 +15,14 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/HSVColor.msg"
+  "msg/Centroid.msg"
+  "msg/CloseBuoysCentroids.msg"
+  "msg/ThrustersVelocity.msg"
+  "msg/Buoys.msg"
+  "msg/GoalCentroid.msg"
+  "msg/BuoysDetected.msg"
   "srv/VelocityCommand.srv"
+  "srv/BlindVelocityCommand.srv"
 )
 
 if(BUILD_TESTING)

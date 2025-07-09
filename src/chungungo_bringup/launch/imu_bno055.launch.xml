@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="$(find-pkg-share bno055)" exec="bno055" ros-args="--params-file $(find-pkg-share bno055)/params/bno055_params.yaml"/>
+    
+
+</launch>

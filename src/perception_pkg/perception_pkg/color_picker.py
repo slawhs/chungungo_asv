@@ -11,6 +11,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 N_CAM = 0
+RED_WRAP_HUE = 20
 
 class ColorPicker(Node):
     def __init__(self): 
@@ -81,6 +82,10 @@ class ColorPicker(Node):
             if key == ord('q'):
                 exit()
 
+            if key == ord('r'):
+                self.reset_atributes()
+                self.get_logger().info("Atributes reseted")
+
 
             cv2.imshow("ColorPicker", self.frame)
             cv2.waitKey(1)
@@ -96,21 +101,51 @@ class ColorPicker(Node):
         self.green_points = np.zeros((4, 2), dtype=np.int32)
 
 
+    # def get_hsv_range(self, masked_pixels):
+    #     h_min, s_min, v_min = np.min(masked_pixels, axis=0)
+    #     h_max, s_max, v_max = np.max(masked_pixels, axis=0)
+
+    #     lower_hsv = np.array([
+    #         max(0, h_min),
+    #         max(0, s_min),
+    #         max(0, v_min)
+    #     ])
+
+    #     upper_hsv = np.array([
+    #         min(179, h_max),
+    #         min(255, s_max),
+    #         min(255, v_max)
+    #     ])
+
+    #     return lower_hsv, upper_hsv
+
     def get_hsv_range(self, masked_pixels):
-        h_min, s_min, v_min = np.min(masked_pixels, axis=0)
-        h_max, s_max, v_max = np.max(masked_pixels, axis=0)
+        hsv = masked_pixels.astype(np.float32)
+        h, s, v = hsv[:, 0], hsv[:, 1], hsv[:, 2]
+
+        h_shifted = h.copy()
+        h_shifted[h < RED_WRAP_HUE] += 180  # Shift hues < 20 to "unwrap" red around 0
+
+        h_low = np.percentile(h_shifted, 5) % 180
+        h_high = np.percentile(h_shifted, 95) % 180
+
+        s_low = np.percentile(s, 5)
+        s_high = np.percentile(s, 95)
+
+        v_low = np.percentile(v, 5)
+        v_high = np.percentile(v, 95)
 
         lower_hsv = np.array([
-            max(0, h_min),
-            max(0, s_min),
-            max(0, v_min)
-        ])
+            max(0, h_low),
+            max(0, s_low),
+            max(0, v_low)
+        ]).astype(np.uint8)
 
         upper_hsv = np.array([
-            min(179, h_max),
-            min(255, s_max),
-            min(255, v_max)
-        ])
+            min(179, h_high),
+            min(255, s_high),
+            min(255, v_high)
+        ]).astype(np.uint8)
 
         return lower_hsv, upper_hsv
 
@@ -151,6 +186,9 @@ class ColorPicker(Node):
         
         self.red_pub.publish(red_msg)
 
+        print(f"Lower Red: {self.lower_red}")
+        print(f"Upper Red: {self.upper_red}")
+
         green_msg = HSVColor()
         green_msg.color = 1
 
@@ -161,6 +199,9 @@ class ColorPicker(Node):
         green_msg.h_high = int(self.upper_green[0])
         green_msg.s_high = int(self.upper_green[1])
         green_msg.v_high = int(self.upper_green[2])
+
+        print(f"Lower Green: {self.lower_green}")
+        print(f"Upper Green: {self.upper_green}")
 
         self.green_pub.publish(green_msg)
 

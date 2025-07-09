@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'perception_pkg'
+package_name = 'sensors_pkg'
 
 setup(
     name=package_name,
@@ -13,18 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='grupo4',
-    maintainer_email='grupo4@todo.todo',
+    maintainer='slawhs',
+    maintainer_email='ignagaja@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "camera = perception_pkg.camera:main",
-            "color_picker = perception_pkg.color_picker:main",
-            "lidar = perception_pkg.lidar:main",
-            "buoy_tracker = perception_pkg.buoy_tracker:main",
-            "camera_two_buoys = perception_pkg.camera_two_buoys:main"
+            'imu_velocity_controller = sensors_pkg.imu_vel_ctrl:main',
         ],
     },
 )
