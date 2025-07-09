@@ -14,19 +14,19 @@ class NavChannelRoutine(Node):
     def __init__(self):
         super().__init__("NavChannelRoutine")
 
-        # -------- Parameters --------
-        self.parameters_setup()
-
         # -------- Publishers and Subscribers --------
         self.buoys_sub = self.create_subscription(BuoysDetected, "/buoys_detected", self.buoys_cb, 10)  # Recieves a list with maximum 4 segmented buoys sorted from left to right
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 10)  # Recieves the two closest obstacles centroids from the LiDAR 
         self.goals_completed_sub = self.create_subscription(Int8, "/goals_completed", self.passed_portals_cb, 10)  # Recieves the number of compĺeted goals
         self.controller_state_sub = self.create_subscription(String, "/controller_state", self.controller_state_cb, 10)  # Recieves the current controller state
+        self.operation_mode_sub = self.create_subscription(String, "/operation_mode", self.mode_cb, 10)
 
         self.goal_pub = self.create_publisher(GoalCentroid, "/goal_centroid", 10)
         self.goal_laserscan_pub = self.create_publisher(LaserScan, "/goal_laserscan", 1)  # Optional, for visualization purposes
 
         # -------- Atributes --------
+        self.routine_active = False
+
         self.buoys_array = [None] * 4  # Array to store the four detected buoys
         self.centroids_array = [None] * 2  # Array to store the two closest centroids}
         
@@ -39,65 +39,77 @@ class NavChannelRoutine(Node):
         timer_period = 0.01  # seconds
         self.timer = self.create_timer(timer_period, self.goal_centroid_cb)
 
-    def parameters_setup(self):
-       pass
+    def mode_cb(self, msg):
+        last_operation_mode = self.operation_mode
+        
+        self.operation_mode = msg.data
+        
+        if last_operation_mode != self.operation_mode and self.operation_mode == "nav_channel":
+            self.get_logger().info("Nav Channel Routine started.")
+            self.routine_active = True
 
     def controller_state_cb(self, msg):
-        last_controller_state = self.controller_state
-        self.controller_state = msg.data
+        if self.routine_active:
+            last_controller_state = self.controller_state
+            self.controller_state = msg.data
 
-        if last_controller_state == "inactive" and self.controller_state == "active":
-            self.get_logger().info("Controller Active.")
-        if last_controller_state == "active" and self.controller_state == "inactive":
-            self.get_logger().info("Controller Inactive. Waiting for new buoys to detect.")
+            if last_controller_state == "inactive" and self.controller_state == "active":
+                self.get_logger().info("Controller Active.")
+            if last_controller_state == "active" and self.controller_state == "inactive":
+                self.get_logger().info("Controller Inactive. Waiting for new buoys to detect.")
 
     def passed_portals_cb(self, msg):
-        self.passed_portals = msg.data
+        if self.routine_active:
+            self.passed_portals = msg.data
 
-        if self.passed_portals >= 2:
-            self.get_logger().info("Two portals passed. ¡Routine completed!.")
-            self.destroy_node()
+            if self.passed_portals >= 2:
+                self.get_logger().info("Two portals passed. ¡Routine completed!")
+                self.routine_active = False
+                self.destroy_node()
 
     def buoys_cb(self, buoys_msg):
-        # Buoy_msg contains four Buoy messages, each with: id, color, centroid_x and angle
-        self.buoys_array = [None] * 4  # Reset the array to None
+        if self.routine_active:
+            # Buoy_msg contains four Buoy messages, each with: id, color, centroid_x and angle
+            self.buoys_array = [None] * 4  # Reset the array to None
 
-        if buoys_msg.buoy_1.id != None:
-            self.buoys_array[0] = buoys_msg.buoy_1
-        if buoys_msg.buoy_2 != None:
-            self.buoys_array[1] = buoys_msg.buoy_2
-        if buoys_msg.buoy_3 != None:
-            self.buoys_array[2] = buoys_msg.buoy_3
-        if buoys_msg.buoy_4 != None:
-            self.buoys_array[3] = buoys_msg.buoy_4        
+            if buoys_msg.buoy_1.id != None:
+                self.buoys_array[0] = buoys_msg.buoy_1
+            if buoys_msg.buoy_2 != None:
+                self.buoys_array[1] = buoys_msg.buoy_2
+            if buoys_msg.buoy_3 != None:
+                self.buoys_array[2] = buoys_msg.buoy_3
+            if buoys_msg.buoy_4 != None:
+                self.buoys_array[3] = buoys_msg.buoy_4        
 
     def centroids_cb(self, msg):
-        if msg.centroid_1.theta > msg.centroid_2.theta:
-            self.centroids_array[0] = msg.centroid_1
-            self.centroids_array[1] = msg.centroid_2
-        else:
-            self.centroids_array[0] = msg.centroid_2
-            self.centroids_array[1] = msg.centroid_1
+        if self.routine_active:
+            if msg.centroid_1.theta > msg.centroid_2.theta:
+                self.centroids_array[0] = msg.centroid_1
+                self.centroids_array[1] = msg.centroid_2
+            else:
+                self.centroids_array[0] = msg.centroid_2
+                self.centroids_array[1] = msg.centroid_1
 
     def goal_centroid_cb(self):
-        # self.get_logger().info("Checking for Portal")
-        if self.controller_state == "inactive":
-            camera_detected_two_buoys = self.buoys_array[0] is not None and self.buoys_array[1] is not None
-            lidar_detected_two_centroids = self.centroids_array[0] is not None and self.centroids_array[1] is not None
+        if self.routine_active:
+            # self.get_logger().info("Checking for Portal")
+            if self.controller_state == "inactive":
+                camera_detected_two_buoys = self.buoys_array[0] is not None and self.buoys_array[1] is not None
+                lidar_detected_two_centroids = self.centroids_array[0] is not None and self.centroids_array[1] is not None
 
-            if camera_detected_two_buoys and lidar_detected_two_centroids:
-                # self.get_logger().info("Camera and LiDAR detected two buoys.")
-                # If both camera and LiDAR detected two buoys and two centroids, we can proceed to match them
-                self.portal_colors = self.match_buoys_to_centroids()
+                if camera_detected_two_buoys and lidar_detected_two_centroids:
+                    # self.get_logger().info("Camera and LiDAR detected two buoys.")
+                    # If both camera and LiDAR detected two buoys and two centroids, we can proceed to match them
+                    self.portal_colors = self.match_buoys_to_centroids()
 
-                valid_portal = self.check_portal_colors(self.portal_colors)
-                # self.get_logger().info(f"valid_portal = {valid_portal}")
+                    valid_portal = self.check_portal_colors(self.portal_colors)
+                    # self.get_logger().info(f"valid_portal = {valid_portal}")
 
-                if valid_portal:
-                    # self.get_logger().info("Valid portal detected.")
-                    goal_distance, goal_angle = self.set_goal(self.centroids_array)
-                    self.publish_goal(goal_distance, goal_angle)
-                    self.publish_goal_laserscan(goal_distance, goal_angle)
+                    if valid_portal:
+                        # self.get_logger().info("Valid portal detected.")
+                        goal_distance, goal_angle = self.set_goal(self.centroids_array)
+                        self.publish_goal(goal_distance, goal_angle)
+                        self.publish_goal_laserscan(goal_distance, goal_angle)
 
     def match_buoys_to_centroids(self):
         # For the each centroid, find the closest buoy (by angle) to that centroid, storing the centroids
@@ -113,28 +125,28 @@ class NavChannelRoutine(Node):
 
         return portal_colors == expected_colors
 
-    def set_goal(self, portal_centroids):
-        # Calculate the angle to the center of the portal
-        left_buoy = portal_centroids[0]
-        right_buoy = portal_centroids[1]
+    # def set_goal(self, portal_centroids):
+    #     # Calculate the angle to the center of the portal
+    #     left_buoy = portal_centroids[0]
+    #     right_buoy = portal_centroids[1]
 
-        half_to_left_angle_num = -(left_buoy.range**2) + (right_buoy.range**2)
-        half_to_left_angle_den = np.sqrt(left_buoy.range**4 + right_buoy.range**4 - 2 * (left_buoy.range**2) * (right_buoy.range**2) * np.cos(2*(left_buoy.theta - right_buoy.theta)))
+    #     half_to_left_angle_num = -(left_buoy.range**2) + (right_buoy.range**2)
+    #     half_to_left_angle_den = np.sqrt(left_buoy.range**4 + right_buoy.range**4 - 2 * (left_buoy.range**2) * (right_buoy.range**2) * np.cos(2*(left_buoy.theta - right_buoy.theta)))
  
-        half_to_left_angle = np.arccos(half_to_left_angle_num / half_to_left_angle_den)
-        alpha = left_buoy.theta - right_buoy.theta
-        half_to_right_angle = alpha - half_to_left_angle
+    #     half_to_left_angle = np.arccos(half_to_left_angle_num / half_to_left_angle_den)
+    #     alpha = left_buoy.theta - right_buoy.theta
+    #     half_to_right_angle = alpha - half_to_left_angle
 
-        if abs(left_buoy.theta) > abs(right_buoy.theta):
-            goal_angle = left_buoy.theta - half_to_left_angle
-        else:
-            goal_angle = right_buoy.theta - half_to_right_angle
+    #     if abs(left_buoy.theta) > abs(right_buoy.theta):
+    #         goal_angle = left_buoy.theta - half_to_left_angle
+    #     else:
+    #         goal_angle = right_buoy.theta - half_to_right_angle
 
-        goal_distance = 12.0
+    #     goal_distance = 12.0
 
-        self.get_logger().info(f"Valid Portal {self.portal_colors}. Goal set = {goal_distance:.3f} m, {goal_angle:.3f}°.")
+    #     self.get_logger().info(f"Valid Portal {self.portal_colors}. Goal set = {goal_distance:.3f} m, {goal_angle:.3f}°.")
 
-        return goal_distance, goal_angle
+    #     return goal_distance, goal_angle
     
     def set_goal(self, portal_centroids):
         # Calculate the angle to the center of the portal
