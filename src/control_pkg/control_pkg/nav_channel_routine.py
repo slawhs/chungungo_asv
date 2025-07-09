@@ -5,7 +5,7 @@ from rclpy.node import Node
 
 from chungungo_interfaces.msg import BuoysDetected, CloseBuoysCentroids, GoalCentroid
 from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Int8, String
+from std_msgs.msg import Int32, String
 
 import numpy as np
 
@@ -17,7 +17,7 @@ class NavChannelRoutine(Node):
         # -------- Publishers and Subscribers --------
         self.buoys_sub = self.create_subscription(BuoysDetected, "/buoys_detected", self.buoys_cb, 10)  # Recieves a list with maximum 4 segmented buoys sorted from left to right
         self.centroids_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 10)  # Recieves the two closest obstacles centroids from the LiDAR 
-        self.goals_completed_sub = self.create_subscription(Int8, "/goals_completed", self.passed_portals_cb, 10)  # Recieves the number of compĺeted goals
+        self.goals_completed_sub = self.create_subscription(Int32, "/goals_completed", self.passed_portals_cb, 10)  # Recieves the number of compĺeted goals
         self.controller_state_sub = self.create_subscription(String, "/controller_state", self.controller_state_cb, 10)  # Recieves the current controller state
         self.operation_mode_sub = self.create_subscription(String, "/operation_mode", self.mode_cb, 10)
 
@@ -26,6 +26,7 @@ class NavChannelRoutine(Node):
 
         # -------- Atributes --------
         self.routine_active = False
+        self.operation_mode = None
 
         self.buoys_array = [None] * 4  # Array to store the four detected buoys
         self.centroids_array = [None] * 2  # Array to store the two closest centroids}
@@ -157,11 +158,31 @@ class NavChannelRoutine(Node):
         right_buoy_angle = portal_centroids[1].theta
 
         goal_distance = (left_buoy_distance + right_buoy_distance) / 2.0
-        goal_angle = (left_buoy_angle + right_buoy_angle) / 2.0
+        goal_angle = self.calculate_goal_angle(left_buoy_distance, right_buoy_distance, left_buoy_angle, right_buoy_angle)
 
         self.get_logger().info(f"Valid Portal {self.portal_colors}. Goal set = {goal_distance:.3f} m, {goal_angle:.3f}°.")
 
         return goal_distance, goal_angle
+
+
+    def calculate_goal_angle(self, left_buoy_distance, right_buoy_distance, left_buoy_angle, right_buoy_angle):
+        # Convert to radians if in degrees
+        left_angle_radians = np.radians(left_buoy_angle)
+        right_angle_radians = np.radians(right_buoy_angle)
+
+        # Cartesian coordinates
+        x1, y1 = left_buoy_distance * np.cos(left_angle_radians), left_buoy_distance * np.sin(left_angle_radians)
+        x2, y2 = right_buoy_distance * np.cos(right_angle_radians), right_buoy_distance * np.sin(right_angle_radians)
+
+        # Midpoint
+        xm, ym = (x1 + x2) / 2, (y1 + y2) / 2
+
+        # Angle of midpoint
+        angle_rad = np.arctan2(ym, xm)
+
+        return np.degrees(angle_rad)
+
+
 
     def publish_goal(self, goal_distance, goal_angle):
         msg = GoalCentroid()
@@ -189,7 +210,7 @@ class NavChannelRoutine(Node):
 
         goal_index = int((goal_angle)/msg.angle_increment)
         
-        self.get_logger().info(f"Setting goal distance at index {goal_index} with value {goal_distance:.3f} m")
+        # self.get_logger().info(f"Setting goal distance at index {goal_index} with value {goal_distance:.3f} m")
 
         if 0 <= goal_index < len(ranges):
             ranges[goal_index] = float(goal_distance)

@@ -54,11 +54,11 @@ class CameraTwoBuoys(Node):
         self.initial_time = time()
 
         camera_FOV = 55 # Camera diagonal field of view in degrees
-        camera_shape = (640, 480)
-        diagonal_length = np.sqrt(camera_shape[0]**2 + camera_shape[1]**2)
+        self.camera_shape = (640, 480)
+        diagonal_length = np.sqrt(self.camera_shape[0]**2 + self.camera_shape[1]**2)
 
         self.pix_grad_ratio = diagonal_length / camera_FOV
-        self.center_pix = camera_shape[0] / 2
+        self.center_pix = self.camera_shape[0] / 2
 
         # -------- Setup Routines --------
         self.setup_camera()
@@ -303,10 +303,10 @@ class CameraTwoBuoys(Node):
     def sort_buoys(self):
         self.sorted_buoys = sorted(self.buoys_array, key=lambda buoy: buoy.limit if buoy else float('inf'))
 
-        print("Sorted buoys:")
+        self.get_logger().info("Sorted buoys:")
         for buoy in self.sorted_buoys:
             if buoy:
-                print(f" - {buoy}")
+                self.get_logger().info(f" - {buoy}")
 
     def calculate_angle(self, x):
         # Calculate the angle of the buoy based on its x position in the camera frame
