@@ -81,7 +81,12 @@ class AvoidBuoyRoutine(Node):
                 
             if self.current_avoid_step == 1 and self.controller_state== "inactive":
                 goal_distance = self.closest_buoy.range
-                goal_angle = self.closest_buoy.theta + 30  # Turn 30° away from the buoy
+
+                if self.closest_buoy.theta > 0:  # if closest buoy is on the left side
+                    goal_angle = self.closest_buoy.theta - 30  # Turn right 30° from the buoy
+                else:  # if closest buoy is on the right side
+                    goal_angle = self.closest_buoy.theta + 30  # Turn left 30° from the buoy
+                
                 self.publish_goal(goal_distance, goal_angle)
                 self.publish_goal_laserscan(goal_distance, goal_angle)
 

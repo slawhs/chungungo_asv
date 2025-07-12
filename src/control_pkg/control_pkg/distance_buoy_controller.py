@@ -3,8 +3,8 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String, Int8
-from chungungo_interfaces.msg import GoalCentroid, ThrustersVelocity
+from std_msgs.msg import String, Int32
+from chungungo_interfaces.msg import GoalCentroid, ThrustersVelocity, CloseBuoysCentroids
 from control_pkg.pid_controller import PIDController
 
 import numpy as np
@@ -18,11 +18,11 @@ class DistanceBuoyController(Node):
         self.parameters_setup()
 
         # -------- Publishers and Subscribers --------
-        self.goal_sub = self.create_subscription(GoalCentroid, "/goal_centroid", self.goal_cb, 1)
+        self.goal_sub = self.create_subscription(CloseBuoysCentroids, "/centroids", self.centroids_cb, 1)
         self.operation_mode_sub = self.create_subscription(String, "/operation_mode", self.mode_cb, 10)
 
         self.buoy_distance_vel_pub = self.create_publisher(ThrustersVelocity, '/buoy_distance_velocity', 10)
-        self.goals_completed_pub = self.create_publisher(Int8, '/goals_completed', 10)
+        self.goals_completed_pub = self.create_publisher(Int32, '/goals_completed', 10)
         self.controller_state_pub = self.create_publisher(String, '/controller_state', 10)
 
         # -------- Atributes --------
@@ -42,7 +42,7 @@ class DistanceBuoyController(Node):
         self.linear_vel = 0.0
         self.angular_vel = 0.0
 
-        self.angular_setpoint = 90
+        self.angular_setpoint = 0
         self.linear_setpoint = 1.0
 
         self.valid_control = False
@@ -87,6 +87,36 @@ class DistanceBuoyController(Node):
         if self.operation_mode == "buoy" or self.operation_mode == "nav_channel":
             self.reset_errors(self.angle_controller)
             self.reset_errors(self.distance_controller)
+
+    def centroids_cb(self,msg):
+        self.goal_buoy = msg.centroid_1 
+
+        invalid_goal_buoy = (np.isnan(self.goal_buoy.range).any()) or (np.isnan(self.goal_buoy.theta).any())
+
+        if (self.goal_buoy is None) or invalid_goal_buoy or self.operation_mode == "joystick" or self.operation_mode == "standby":
+            self.valid_control = False
+            self.distance_to_buoy = 0.0
+            self.angle_to_buoy = 0.0
+
+        else:
+            self.valid_control = True
+            
+            self.distance_to_buoy = self.goal_buoy.range
+            self.angle_to_buoy = self.goal_buoy.theta
+
+            if np.abs(self.angle_to_buoy) > self.angle_th:
+                self.angle_control = True
+            else:
+                self.angle_control = False
+                self.reset_errors(self.angle_controller)
+
+            if np.abs(self.distance_to_buoy) > self.dist_th:
+                self.distance_control = True
+            else:
+                self.distance_control = False
+                self.reset_errors(self.distance_controller)
+
+
 
     def goal_cb(self, msg):
 
@@ -163,14 +193,14 @@ class DistanceBuoyController(Node):
         self.get_logger().info(f"Goal completed. Total goals completed: {self.goals_completed}")
         self.publish_goal_completed()
 
-        self.publish_velocity(linear_velocity=0, angular_velocity=0)
+        # self.publish_velocity(linear_velocity=0, angular_velocity=0)
 
     
     def publish_goal_completed(self):
-        goals_completed_msg = Int8()
+        goals_completed_msg = Int32()
         goals_completed_msg.data = self.goals_completed
 
-        self.goal_pub.publish(goals_completed_msg)
+        self.goals_completed_pub.publish(goals_completed_msg)
 
     def publish_velocity(self, linear_velocity, angular_velocity):
         left_velocity = linear_velocity + angular_velocity
